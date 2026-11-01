@@ -9,6 +9,19 @@ import type {
   DotType,
   CornerSquareType,
 } from '../types';
+import {
+  Link2,
+  Wifi,
+  Contact2,
+  MessageSquare,
+  Coins,
+  Mail,
+  FileText,
+  SlidersHorizontal,
+  Palette,
+  Sparkles,
+  Upload,
+} from 'lucide-react';
 
 interface QRGeneratorProps {
   payloadType: QRType;
@@ -53,32 +66,41 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'content' | 'style' | 'logo'>('content');
 
-  const types: { id: QRType; label: string }[] = [
-    { id: 'url', label: 'URL / Link' },
-    { id: 'wifi', label: 'WiFi' },
-    { id: 'vcard', label: 'vCard Contact' },
-    { id: 'whatsapp', label: 'WhatsApp' },
-    { id: 'email', label: 'Email' },
-    { id: 'crypto', label: 'Crypto' },
-    { id: 'text', label: 'Plain Text' },
+  const types: { id: QRType; label: string; icon: React.ReactNode }[] = [
+    { id: 'url', label: 'Website Link', icon: <Link2 className="w-3.5 h-3.5" /> },
+    { id: 'wifi', label: 'WiFi Connect', icon: <Wifi className="w-3.5 h-3.5" /> },
+    { id: 'vcard', label: 'Digital Card', icon: <Contact2 className="w-3.5 h-3.5" /> },
+    { id: 'whatsapp', label: 'WhatsApp', icon: <MessageSquare className="w-3.5 h-3.5" /> },
+    { id: 'email', label: 'Email', icon: <Mail className="w-3.5 h-3.5" /> },
+    { id: 'crypto', label: 'Crypto Pay', icon: <Coins className="w-3.5 h-3.5" /> },
+    { id: 'text', label: 'Plain Text', icon: <FileText className="w-3.5 h-3.5" /> },
   ];
 
   const dotPatterns: { id: DotType; label: string }[] = [
-    { id: 'rounded', label: 'Rounded' },
-    { id: 'dots', label: 'Dots' },
+    { id: 'rounded', label: 'Soft Round' },
+    { id: 'dots', label: 'Micro Dots' },
     { id: 'classy', label: 'Classy' },
-    { id: 'square', label: 'Square' },
-    { id: 'extra-rounded', label: 'Smooth' },
+    { id: 'square', label: 'Standard' },
+    { id: 'extra-rounded', label: 'Ultra Smooth' },
   ];
 
   const cornerSquares: { id: CornerSquareType; label: string }[] = [
-    { id: 'extra-rounded', label: 'Rounded' },
-    { id: 'dot', label: 'Circle' },
-    { id: 'square', label: 'Square' },
+    { id: 'extra-rounded', label: 'Pill Eye' },
+    { id: 'dot', label: 'Circular' },
+    { id: 'square', label: 'Classic Box' },
+  ];
+
+  const luxuryColorPresets = [
+    { name: 'Onyx Black', dots: '#0f172a', bg: '#ffffff' },
+    { name: 'Electric Indigo', dots: '#4f46e5', bg: '#ffffff' },
+    { name: 'Cyber Cyan', dots: '#0891b2', bg: '#ffffff' },
+    { name: 'Royal Violet', dots: '#7c3aed', bg: '#ffffff' },
+    { name: 'Forest Jade', dots: '#059669', bg: '#ffffff' },
+    { name: 'Crimson Rose', dots: '#e11d48', bg: '#ffffff' },
   ];
 
   const presetLogos = [
-    { label: 'WiFi', url: 'https://cdn-icons-png.flaticon.com/512/93/93158.png' },
+    { label: 'WiFi Icon', url: 'https://cdn-icons-png.flaticon.com/512/93/93158.png' },
     { label: 'WhatsApp', url: 'https://cdn-icons-png.flaticon.com/512/3670/3670051.png' },
     { label: 'Instagram', url: 'https://cdn-icons-png.flaticon.com/512/3955/3955024.png' },
     { label: 'Maps', url: 'https://cdn-icons-png.flaticon.com/512/854/854878.png' },
@@ -99,118 +121,126 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   };
 
   return (
-    <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm transition-colors">
+    <div className="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/50 dark:shadow-black/50 transition-all">
       
-      {/* Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-3.5 mb-6 text-xs font-semibold">
+      {/* Floating Segmented Controller Tabs */}
+      <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-950 mb-7 shadow-inner">
         <button
           onClick={() => setActiveTab('content')}
-          className={`px-4 py-2 rounded-xl transition ${
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
             activeTab === 'content'
-              ? 'bg-indigo-600 text-white shadow-xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800/50'
+              ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          1. Content Data
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span>1. QR Payload</span>
         </button>
+
         <button
           onClick={() => setActiveTab('style')}
-          className={`px-4 py-2 rounded-xl transition ${
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
             activeTab === 'style'
-              ? 'bg-indigo-600 text-white shadow-xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800/50'
+              ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          2. Styling & Colors
+          <Palette className="w-3.5 h-3.5" />
+          <span>2. Art & Color</span>
         </button>
+
         <button
           onClick={() => setActiveTab('logo')}
-          className={`px-4 py-2 rounded-xl transition ${
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
             activeTab === 'logo'
-              ? 'bg-indigo-600 text-white shadow-xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800/50'
+              ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+              : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          3. Brand Logo
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>3. Center Brand</span>
         </button>
       </div>
 
-      {/* TAB 1: CONTENT DATA */}
+      {/* TAB 1: CONTENT */}
       {activeTab === 'content' && (
-        <div className="space-y-5">
-          {/* Format pills */}
+        <div className="space-y-6">
+          {/* Format selector chips */}
           <div className="flex flex-wrap gap-2">
             {types.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setPayloadType(t.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                   payloadType === t.id
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                    : 'bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}
               >
-                {t.label}
+                {t.icon}
+                <span>{t.label}</span>
               </button>
             ))}
           </div>
 
-          {/* Form fields */}
+          {/* Seamless Frameless Inputs */}
           <div className="pt-2">
             {payloadType === 'url' && (
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Target Website URL
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  Destination Link
                 </label>
-                <input
-                  type="url"
-                  value={urlValue}
-                  onChange={(e) => setUrlValue(e.target.value)}
-                  placeholder="https://yourbrand.com"
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500 font-mono shadow-xs"
-                />
+                <div className="relative">
+                  <input
+                    type="url"
+                    value={urlValue}
+                    onChange={(e) => setUrlValue(e.target.value)}
+                    placeholder="https://yourbrand.com or https://restaurantmenu.com"
+                    className="w-full px-5 py-4 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/80 font-mono shadow-inner transition"
+                  />
+                </div>
               </div>
             )}
 
             {payloadType === 'wifi' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
                     Network Name (SSID)
                   </label>
                   <input
                     type="text"
                     value={wifiData.ssid}
                     onChange={(e) => setWifiData((p) => ({ ...p, ssid: e.target.value }))}
-                    placeholder="Guest-WiFi"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
+                    placeholder="e.g. ChicagoCafe-Guest-WiFi"
+                    className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/80 shadow-inner"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
                       Password
                     </label>
                     <input
                       type="text"
                       value={wifiData.password}
                       onChange={(e) => setWifiData((p) => ({ ...p, password: e.target.value }))}
-                      placeholder="Password"
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm font-mono focus:outline-none focus:border-indigo-500"
+                      placeholder="Network Password"
+                      className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/80 shadow-inner"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Security
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                      Encryption
                     </label>
                     <select
                       value={wifiData.encryption}
                       onChange={(e) => setWifiData((p) => ({ ...p, encryption: e.target.value as any }))}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-indigo-500"
+                      className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/80 shadow-inner"
                     >
-                      <option value="WPA">WPA / WPA2 / WPA3</option>
-                      <option value="WEP">WEP</option>
-                      <option value="nopass">None (Open)</option>
+                      <option value="WPA">WPA / WPA2 / WPA3 (Default)</option>
+                      <option value="WEP">WEP (Legacy)</option>
+                      <option value="nopass">None (Open Network)</option>
                     </select>
                   </div>
                 </div>
@@ -225,14 +255,14 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                     value={vcardData.firstName}
                     onChange={(e) => setVcardData((p) => ({ ...p, firstName: e.target.value }))}
                     placeholder="First Name"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-xs"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   />
                   <input
                     type="text"
                     value={vcardData.lastName}
                     onChange={(e) => setVcardData((p) => ({ ...p, lastName: e.target.value }))}
                     placeholder="Last Name"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-xs"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -240,15 +270,15 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                     type="text"
                     value={vcardData.company}
                     onChange={(e) => setVcardData((p) => ({ ...p, company: e.target.value }))}
-                    placeholder="Company"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-xs"
+                    placeholder="Company / Restaurant"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   />
                   <input
                     type="tel"
                     value={vcardData.phone}
                     onChange={(e) => setVcardData((p) => ({ ...p, phone: e.target.value }))}
-                    placeholder="Phone"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-xs"
+                    placeholder="Phone Number"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -256,15 +286,15 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                     type="email"
                     value={vcardData.email}
                     onChange={(e) => setVcardData((p) => ({ ...p, email: e.target.value }))}
-                    placeholder="Email"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-xs"
+                    placeholder="Email Address"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   />
                   <input
                     type="url"
                     value={vcardData.website}
                     onChange={(e) => setVcardData((p) => ({ ...p, website: e.target.value }))}
-                    placeholder="Website"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-xs"
+                    placeholder="https://brand.com"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   />
                 </div>
               </div>
@@ -277,14 +307,14 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                   value={whatsappData.phone}
                   onChange={(e) => setWhatsappData((p) => ({ ...p, phone: e.target.value }))}
                   placeholder="Phone with country code (e.g. 13125550144)"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm"
+                  className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-inner"
                 />
                 <textarea
                   rows={2}
                   value={whatsappData.message}
                   onChange={(e) => setWhatsappData((p) => ({ ...p, message: e.target.value }))}
                   placeholder="Pre-filled greeting message"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm"
+                  className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-inner"
                 />
               </div>
             )}
@@ -295,7 +325,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                   <select
                     value={cryptoData.currency}
                     onChange={(e) => setCryptoData((p) => ({ ...p, currency: e.target.value as any }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   >
                     <option value="BTC">Bitcoin (BTC)</option>
                     <option value="ETH">Ethereum (ETH)</option>
@@ -306,15 +336,15 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                     value={cryptoData.amount || ''}
                     onChange={(e) => setCryptoData((p) => ({ ...p, amount: e.target.value }))}
                     placeholder="Amount (optional)"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   />
                 </div>
                 <input
                   type="text"
                   value={cryptoData.address}
                   onChange={(e) => setCryptoData((p) => ({ ...p, address: e.target.value }))}
-                  placeholder="Paste wallet address"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm font-mono"
+                  placeholder="Wallet address"
+                  className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm font-mono focus:ring-2 focus:ring-indigo-500 shadow-inner"
                 />
               </div>
             )}
@@ -326,14 +356,14 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                   value={emailData.email}
                   onChange={(e) => setEmailData((p) => ({ ...p, email: e.target.value }))}
                   placeholder="Recipient Email"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm"
+                  className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-inner"
                 />
                 <input
                   type="text"
                   value={emailData.subject}
                   onChange={(e) => setEmailData((p) => ({ ...p, subject: e.target.value }))}
-                  placeholder="Subject line"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm"
+                  placeholder="Subject Line"
+                  className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-inner"
                 />
               </div>
             )}
@@ -343,52 +373,63 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                 rows={3}
                 value={textValue}
                 onChange={(e) => setTextValue(e.target.value)}
-                placeholder="Enter raw text payload..."
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-sm"
+                placeholder="Enter raw text, serial codes, or Wi-Fi notes..."
+                className="w-full px-5 py-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 shadow-inner"
               />
             )}
-          </div>
-
-          {/* Validity selector */}
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex items-center justify-between mb-2 text-xs">
-              <span className="text-slate-600 dark:text-slate-400 font-semibold">Validity Guarantee</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">100% Free • Never Expires</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              {(['lifetime', '1year', '6months'] as const).map((term) => (
-                <button
-                  key={term}
-                  type="button"
-                  onClick={() => setDesign((prev) => ({ ...prev, validityTerm: term }))}
-                  className={`py-2 px-3 rounded-xl border font-semibold text-center transition ${
-                    design.validityTerm === term
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 shadow-xs'
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                  }`}
-                >
-                  {term === 'lifetime' ? 'Lifetime' : term === '1year' ? '1 Year' : '6 Months'}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       )}
 
-      {/* TAB 2: STYLING */}
+      {/* TAB 2: STYLE & LUXURY PRESETS */}
       {activeTab === 'style' && (
-        <div className="space-y-5">
+        <div className="space-y-6">
+          {/* Luxury Curated Presets */}
           <div>
-            <span className="block text-xs text-slate-700 dark:text-slate-300 font-semibold mb-2">Matrix Pattern</span>
+            <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2.5">
+              Luxury Palette Presets
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {luxuryColorPresets.map((palette) => (
+                <button
+                  key={palette.name}
+                  onClick={() =>
+                    setDesign((p) => ({
+                      ...p,
+                      dotsColor: palette.dots,
+                      cornerSquareColor: palette.dots,
+                      cornerDotColor: palette.dots,
+                      backgroundColor: palette.bg,
+                    }))
+                  }
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 transition text-left cursor-pointer"
+                >
+                  <span
+                    className="w-4 h-4 rounded-full shadow-xs shrink-0"
+                    style={{ backgroundColor: palette.dots }}
+                  />
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                    {palette.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Matrix Pattern Style */}
+          <div>
+            <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+              Matrix Geometry
+            </span>
             <div className="flex flex-wrap gap-2">
               {dotPatterns.map((pat) => (
                 <button
                   key={pat.id}
                   onClick={() => setDesign((p) => ({ ...p, dotsType: pat.id }))}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                     design.dotsType === pat.id
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                      : 'bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
                   }`}
                 >
                   {pat.label}
@@ -397,17 +438,20 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
             </div>
           </div>
 
+          {/* Corner Eyes */}
           <div>
-            <span className="block text-xs text-slate-700 dark:text-slate-300 font-semibold mb-2">Corner Eyes</span>
+            <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+              Corner Eye Framing
+            </span>
             <div className="flex flex-wrap gap-2">
               {cornerSquares.map((sq) => (
                 <button
                   key={sq.id}
                   onClick={() => setDesign((p) => ({ ...p, cornerSquareType: sq.id }))}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                     design.cornerSquareType === sq.id
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                      : 'bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
                   }`}
                 >
                   {sq.label}
@@ -416,38 +460,40 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-4 text-xs">
+          {/* Custom Color Pickers */}
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-850 grid grid-cols-2 gap-4 text-xs">
             <div>
-              <span className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">Dots Color</span>
-              <div className="flex items-center gap-2">
+              <span className="block text-slate-600 dark:text-slate-400 font-semibold mb-1">Pattern Color</span>
+              <div className="flex items-center gap-2.5">
                 <input
                   type="color"
                   value={design.dotsColor}
                   onChange={(e) => setDesign((p) => ({ ...p, dotsColor: e.target.value }))}
-                  className="w-9 h-9 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent cursor-pointer"
+                  className="w-10 h-10 rounded-xl bg-transparent cursor-pointer"
                 />
-                <span className="font-mono text-slate-700 dark:text-slate-300">{design.dotsColor}</span>
+                <span className="font-mono text-slate-800 dark:text-slate-200 font-bold">{design.dotsColor}</span>
               </div>
             </div>
 
             <div>
-              <span className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">Background Canvas</span>
-              <div className="flex items-center gap-2">
+              <span className="block text-slate-600 dark:text-slate-400 font-semibold mb-1">Canvas Background</span>
+              <div className="flex items-center gap-2.5">
                 <input
                   type="color"
                   value={design.backgroundColor}
                   onChange={(e) => setDesign((p) => ({ ...p, backgroundColor: e.target.value }))}
-                  className="w-9 h-9 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent cursor-pointer"
+                  className="w-10 h-10 rounded-xl bg-transparent cursor-pointer"
                 />
-                <span className="font-mono text-slate-700 dark:text-slate-300">{design.backgroundColor}</span>
+                <span className="font-mono text-slate-800 dark:text-slate-200 font-bold">{design.backgroundColor}</span>
               </div>
             </div>
           </div>
 
+          {/* Margin */}
           <div>
-            <div className="flex justify-between text-xs text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
-              <span>Quiet Zone Padding</span>
-              <span className="font-mono text-indigo-600 dark:text-indigo-400">{design.margin}px</span>
+            <div className="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              <span>Print Quiet Zone</span>
+              <span className="font-mono text-indigo-600 dark:text-indigo-400 font-bold">{design.margin}px</span>
             </div>
             <input
               type="range"
@@ -455,26 +501,28 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
               max={25}
               value={design.margin}
               onChange={(e) => setDesign((p) => ({ ...p, margin: Number(e.target.value) }))}
-              className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              className="w-full h-2 bg-slate-100 dark:bg-slate-950 rounded-lg appearance-none cursor-pointer accent-indigo-600"
             />
           </div>
         </div>
       )}
 
-      {/* TAB 3: LOGO */}
+      {/* TAB 3: CENTER LOGO */}
       {activeTab === 'logo' && (
-        <div className="space-y-5">
+        <div className="space-y-6">
           <div>
-            <span className="block text-xs text-slate-700 dark:text-slate-300 font-semibold mb-2">Preset Quick Icons</span>
-            <div className="flex gap-2.5">
+            <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2.5">
+              Quick Brand Emblems
+            </span>
+            <div className="flex flex-wrap gap-3">
               {presetLogos.map((lg) => (
                 <button
                   key={lg.label}
                   onClick={() => setDesign((p) => ({ ...p, logoUrl: lg.url }))}
-                  className={`p-2.5 rounded-2xl border flex items-center gap-2 text-xs font-semibold transition ${
+                  className={`px-4 py-2.5 rounded-2xl flex items-center gap-2 text-xs font-bold transition cursor-pointer ${
                     design.logoUrl === lg.url
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 shadow-xs'
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                      : 'bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
                   }`}
                 >
                   <img src={lg.url} alt={lg.label} className="w-4 h-4 object-contain" />
@@ -484,18 +532,19 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-4">
-            <label className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs cursor-pointer transition shadow-xs">
-              <span>Upload Custom Brand Logo</span>
-              <input type="file" accept="image/png, image/jpeg, image/svg+xml" onChange={handleCustomLogoUpload} className="hidden" />
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-850 flex items-center gap-4">
+            <label className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer transition shadow-md shadow-indigo-600/20">
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Custom Business Logo</span>
+              <input type="file" accept="image/*" onChange={handleCustomLogoUpload} className="hidden" />
             </label>
 
             {design.logoUrl && (
               <button
                 onClick={() => setDesign((p) => ({ ...p, logoUrl: undefined }))}
-                className="text-xs text-rose-500 hover:underline font-semibold"
+                className="text-xs text-rose-500 hover:underline font-bold"
               >
-                Remove Logo
+                Clear Logo
               </button>
             )}
           </div>

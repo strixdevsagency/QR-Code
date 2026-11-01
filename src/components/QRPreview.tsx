@@ -6,7 +6,7 @@ import type { QRDesignOptions, QRType } from '../types';
 import { getContrastRatio } from '../utils/qrPayload';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../services/db';
-import { Bookmark, Check, Clock, X, Download } from 'lucide-react';
+import { Bookmark, Check, Download, X, Clock } from 'lucide-react';
 
 interface QRPreviewProps {
   payload: string;
@@ -45,8 +45,8 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   useEffect(() => {
     if (!qrCodeInstance.current) {
       qrCodeInstance.current = new QRCodeStyling({
-        width: 260,
-        height: 260,
+        width: 270,
+        height: 270,
         type: 'canvas',
         data: payload || 'https://strixdevs.com',
         image: design.logoUrl || undefined,
@@ -199,11 +199,11 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
         pdf.setFontSize(16);
         pdf.setTextColor(15, 23, 42);
-        pdf.text('Strix QR — Print Ready Document', 20, 25);
+        pdf.text('Strix QR — Permanent Print Document', 20, 25);
 
         pdf.setFontSize(9);
         pdf.setTextColor(100, 116, 139);
-        pdf.text('100% Free Lifetime Static Code • Powered by StrixDevs (strixdevs.com)', 20, 31);
+        pdf.text('100% Free Lifetime Static Code • Engineered by StrixDevs (strixdevs.com)', 20, 31);
 
         pdf.addImage(imgData, 'PNG', 45, 50, 120, 120);
         pdf.save(`${fileName}.pdf`);
@@ -243,89 +243,95 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   };
 
   return (
-    <div className="w-full max-w-[340px] flex flex-col items-center">
-      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-lg flex flex-col items-center transition-colors">
+    <div className="w-full max-w-[360px] flex flex-col items-center">
+      {/* Studio Showcase Card */}
+      <div className="w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-6 sm:p-7 shadow-2xl shadow-indigo-500/10 dark:shadow-black/70 flex flex-col items-center transition-all relative overflow-hidden">
         
-        {/* Status indicator */}
-        <div className="w-full flex items-center justify-between mb-3 text-xs">
-          <span className="text-slate-500 dark:text-slate-400 font-medium">Live Canvas</span>
+        {/* Soft Radial Ambient Glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Scannability Status Pill */}
+        <div className="w-full flex items-center justify-between mb-4 text-xs z-10">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            Live Preview
+          </span>
           {hasContrastWarning ? (
             <button
               onClick={onAutoFixContrast}
-              className="text-amber-500 dark:text-amber-400 hover:underline font-bold"
+              className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold hover:underline"
             >
               Low Contrast (Auto-Fix)
             </button>
           ) : isScannable ? (
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               Verified Scannable
             </span>
           ) : (
-            <span className="text-rose-500 dark:text-rose-400 font-medium">Check Contrast</span>
+            <span className="text-rose-500 text-[11px] font-bold">Check Scan</span>
           )}
         </div>
 
-        {/* QR Canvas */}
+        {/* QR Canvas Pedestal */}
         <div
           ref={containerRef}
-          className="p-3 rounded-2xl bg-white shadow-inner flex items-center justify-center border border-slate-100 dark:border-slate-800"
+          className="p-3.5 rounded-3xl bg-white shadow-xl shadow-slate-200/50 dark:shadow-black/60 flex items-center justify-center transition-transform hover:scale-[1.02] duration-300 z-10"
         />
 
-        {/* Download Buttons */}
-        <div className="w-full mt-4 grid grid-cols-3 gap-2">
+        {/* Download Action Bar */}
+        <div className="w-full mt-6 grid grid-cols-3 gap-2 z-10">
           <button
             onClick={() => handleInitiateDownload('png')}
-            className="py-2.5 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 dark:text-slate-200 border border-slate-200 dark:border-slate-750 transition text-xs font-bold text-center"
+            className="py-2.5 rounded-2xl bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-800 dark:text-slate-100 transition text-xs font-bold text-center cursor-pointer shadow-xs"
           >
             PNG
           </button>
           <button
             onClick={() => handleInitiateDownload('svg')}
-            className="py-2.5 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 dark:text-slate-200 border border-slate-200 dark:border-slate-750 transition text-xs font-bold text-center"
+            className="py-2.5 rounded-2xl bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-800 dark:text-slate-100 transition text-xs font-bold text-center cursor-pointer shadow-xs"
           >
-            SVG
+            Vector SVG
           </button>
           <button
             onClick={() => handleInitiateDownload('pdf')}
-            className="py-2.5 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 dark:text-slate-200 border border-slate-200 dark:border-slate-750 transition text-xs font-bold text-center"
+            className="py-2.5 rounded-2xl bg-slate-100 hover:bg-indigo-600 hover:text-white dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-800 dark:text-slate-100 transition text-xs font-bold text-center cursor-pointer shadow-xs"
           >
-            PDF Print
+            Print PDF
           </button>
         </div>
 
-        {/* Save to Account / Dashboard Button */}
-        <div className="w-full mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+        {/* Save to Vault Action */}
+        <div className="w-full mt-3 z-10">
           <button
             onClick={handleSaveToAccount}
-            className={`w-full py-2.5 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition ${
+            className={`w-full py-3 px-4 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs ${
               savedSuccess
-                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
-                : 'border-indigo-200 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:border-indigo-400 dark:hover:border-indigo-700'
+                ? 'bg-emerald-500 text-white'
+                : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60'
             }`}
           >
             {savedSuccess ? (
               <>
-                <Check className="w-4 h-4 text-emerald-500" />
-                <span>Saved to Your Dashboard!</span>
+                <Check className="w-4 h-4" />
+                <span>Saved to Your Account!</span>
               </>
             ) : (
               <>
-                <Bookmark className="w-4 h-4 text-indigo-500" />
+                <Bookmark className="w-4 h-4" />
                 <span>Save to My Account</span>
               </>
             )}
           </button>
         </div>
 
-        {/* Copy Payload shortcut */}
-        <div className="w-full mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2">
-          <span className="truncate max-w-[200px] font-mono text-[11px]">
+        {/* Payload preview & Copy */}
+        <div className="w-full mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-400 z-10">
+          <span className="truncate max-w-[210px] font-mono text-[11px] text-slate-500 dark:text-slate-400">
             {payload}
           </span>
           <button
             onClick={handleCopyLink}
-            className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold shrink-0 ml-2"
+            className="text-indigo-600 dark:text-indigo-400 hover:underline font-bold text-[11px] shrink-0 ml-2"
           >
             {copied ? 'Copied' : 'Copy'}
           </button>
@@ -335,42 +341,42 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
       {/* Save Modal */}
       {showSaveModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl">
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">Save to Dashboard</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Give this QR code a name so you can retrieve and re-download it anytime.
+              Give your QR code a title to re-download or edit it anytime.
             </p>
 
             <input
               type="text"
               value={qrTitle}
               onChange={(e) => setQrTitle(e.target.value)}
-              placeholder="e.g. Restaurant Table Menu"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-750 text-slate-900 dark:text-white text-xs mb-4 focus:outline-none focus:border-indigo-500"
+              placeholder="e.g. Chicago Cafe Table Menu"
+              className="w-full px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white text-xs mb-4 focus:ring-2 focus:ring-indigo-500 shadow-inner"
             />
 
             <div className="flex items-center justify-end gap-2 text-xs">
               <button
                 onClick={() => setShowSaveModal(false)}
-                className="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 font-semibold"
+                className="px-4 py-2 rounded-xl text-slate-500 font-bold"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmSaveQRCode}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold"
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-500 shadow-md shadow-indigo-600/20"
               >
-                Save Permanently
+                Save
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Download Interstitial Modal with AdSense Space */}
+      {/* Download Interstitial Modal */}
       {showDownloadModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
             <button
               onClick={() => setShowDownloadModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white"
@@ -379,46 +385,46 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
             </button>
 
             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-              Preparing {downloadFormat.toUpperCase()} File
+              Preparing {downloadFormat.toUpperCase()}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              100% Free Lifetime Static Code by StrixDevs.
+              Permanent static code engineered by StrixDevs.
             </p>
 
-            {/* Ad Space inside Modal */}
-            <div className="my-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-center">
-              <span className="text-[10px] uppercase font-mono text-slate-400 dark:text-slate-500 block mb-1">
-                Sponsored Partner
+            {/* Clean Sponsor Callout */}
+            <div className="my-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 text-center">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-1">
+                Featured Partner
               </span>
               <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
                 StrixDevs Enterprise Engineering
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                Crafting custom web applications, mobile platforms, and AI systems.
+                Custom web platforms, mobile apps & AI systems for US & Canadian businesses.
               </p>
               <a
                 href="https://strixdevs.com"
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-block text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-1.5 rounded-lg transition"
+                className="mt-3 inline-block text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl shadow-xs transition"
               >
                 Visit StrixDevs.com →
               </a>
             </div>
 
-            {/* Countdown / Download ready action */}
+            {/* Countdown / Download ready button */}
             {downloadReady ? (
               <button
                 onClick={executeDownload}
-                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition animate-bounce"
+                className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition animate-bounce cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 <span>Save {downloadFormat.toUpperCase()} Now</span>
               </button>
             ) : (
-              <div className="flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium text-xs">
+              <div className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs">
                 <Clock className="w-4 h-4 text-indigo-500 animate-spin" />
-                <span>Your file is ready in {modalTimer}s...</span>
+                <span>Packing file in {modalTimer}s...</span>
               </div>
             )}
           </div>

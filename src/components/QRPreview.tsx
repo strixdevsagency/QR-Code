@@ -4,19 +4,6 @@ import jsQR from 'jsqr';
 import jsPDF from 'jspdf';
 import type { QRDesignOptions } from '../types';
 import { getContrastRatio } from '../utils/qrPayload';
-import {
-  Download,
-  FileCode,
-  FileText,
-  CheckCircle2,
-  AlertTriangle,
-  Sparkles,
-  Printer,
-  Copy,
-  Check,
-  X,
-  Clock,
-} from 'lucide-react';
 
 interface QRPreviewProps {
   payload: string;
@@ -35,16 +22,14 @@ export const QRPreview: React.FC<QRPreviewProps> = ({ payload, design, onAutoFix
   const [modalTimer, setModalTimer] = useState<number>(3);
   const [downloadReady, setDownloadReady] = useState<boolean>(false);
 
-  // Calculate contrast ratio
   const contrastRatio = getContrastRatio(design.dotsColor, design.backgroundColor);
   const hasContrastWarning = contrastRatio < 4.0;
 
-  // Initialize & update qr-code-styling instance
   useEffect(() => {
     if (!qrCodeInstance.current) {
       qrCodeInstance.current = new QRCodeStyling({
-        width: 320,
-        height: 320,
+        width: 280,
+        height: 280,
         type: 'canvas',
         data: payload || 'https://strixdevs.com',
         image: design.logoUrl || undefined,
@@ -139,7 +124,6 @@ export const QRPreview: React.FC<QRPreviewProps> = ({ payload, design, onAutoFix
     return () => clearTimeout(scanTimer);
   }, [payload, design]);
 
-  // Background Optical Camera Verification via jsQR
   const validateScannability = () => {
     try {
       const canvas = containerRef.current?.querySelector('canvas');
@@ -196,28 +180,15 @@ export const QRPreview: React.FC<QRPreviewProps> = ({ payload, design, onAutoFix
           format: 'a4',
         });
 
-        pdf.setFontSize(18);
+        pdf.setFontSize(16);
         pdf.setTextColor(15, 23, 42);
-        pdf.text('Strix QR — Print-Ready Document', 20, 25);
+        pdf.text('Strix QR — Print Ready', 20, 25);
 
-        pdf.setFontSize(10);
+        pdf.setFontSize(9);
         pdf.setTextColor(100, 116, 139);
-        pdf.text('100% Free Lifetime Static Code • Powered by StrixDevs (strixdevs.com)', 20, 32);
+        pdf.text('Permanent Static QR Code • Powered by StrixDevs (strixdevs.com)', 20, 31);
 
-        pdf.addImage(imgData, 'PNG', 45, 55, 120, 120);
-
-        pdf.setDrawColor(203, 213, 225);
-        pdf.roundedRect(20, 190, 170, 35, 3, 3);
-
-        pdf.setFontSize(10);
-        pdf.setTextColor(30, 41, 59);
-        pdf.text('Commercial Print Instructions:', 25, 200);
-
-        pdf.setFontSize(8.5);
-        pdf.setTextColor(100, 116, 139);
-        pdf.text('• Suitable for restaurant menus, business cards, table tents, and storefront windows.', 25, 207);
-        pdf.text('• Guaranteed direct permanent encoding. Never expires, requires no subscription.', 25, 214);
-
+        pdf.addImage(imgData, 'PNG', 45, 50, 120, 120);
         pdf.save(`${fileName}.pdf`);
       }
     }
@@ -232,142 +203,114 @@ export const QRPreview: React.FC<QRPreviewProps> = ({ payload, design, onAutoFix
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-full max-w-[380px] bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl shadow-indigo-950/30 flex flex-col items-center relative group">
+    <div className="w-full max-w-[340px] flex flex-col items-center">
+      <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col items-center">
         
-        <div className="w-full flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80 text-xs">
-          <span className="text-slate-400 font-medium flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Status: <strong className="text-emerald-400 uppercase tracking-wider font-semibold">Active Free</strong>
-          </span>
-          <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[11px] font-medium">
-            {design.validityTerm === 'lifetime' ? 'Lifetime Guarantee' : `${design.validityTerm} Free`}
-          </span>
-        </div>
-
-        <div
-          ref={containerRef}
-          className="p-3 rounded-2xl bg-white shadow-inner flex items-center justify-center transition-transform duration-300 group-hover:scale-[1.01]"
-        />
-
-        <div className="w-full mt-4 space-y-2">
+        {/* Scannability indicator */}
+        <div className="w-full flex items-center justify-between mb-3 text-xs">
+          <span className="text-slate-400 font-medium">Preview</span>
           {hasContrastWarning ? (
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Low contrast. Phone cameras might struggle.</span>
-              </div>
-              <button
-                onClick={onAutoFixContrast}
-                className="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 font-semibold text-[11px] underline"
-              >
-                Auto-Fix
-              </button>
-            </div>
+            <button
+              onClick={onAutoFixContrast}
+              className="text-amber-400 hover:underline font-semibold"
+            >
+              Low Contrast (Auto-Fix)
+            </button>
           ) : isScannable ? (
-            <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>Camera-Verified Scannable by Optical Engine</span>
-            </div>
+            <span className="text-emerald-400 font-medium flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Verified Scannable
+            </span>
           ) : (
-            <div className="flex items-center gap-2 p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>Scanning check failed. Increase contrast or reduce logo size.</span>
-            </div>
+            <span className="text-rose-400 font-medium">Check Scan</span>
           )}
         </div>
 
-        <div className="w-full mt-5 grid grid-cols-3 gap-2">
+        {/* QR Canvas */}
+        <div
+          ref={containerRef}
+          className="p-2.5 rounded-xl bg-white flex items-center justify-center shadow-sm"
+        />
+
+        {/* Download Buttons */}
+        <div className="w-full mt-4 grid grid-cols-3 gap-1.5">
           <button
             onClick={() => handleInitiateDownload('png')}
-            className="flex flex-col items-center justify-center py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-indigo-600 hover:text-white border border-slate-700/80 text-slate-200 transition text-xs font-semibold group/btn"
+            className="py-2 rounded-lg bg-slate-800 hover:bg-indigo-600 hover:text-white border border-slate-700/80 text-slate-200 transition text-xs font-semibold text-center"
           >
-            <Download className="w-4 h-4 mb-1 text-indigo-400 group-hover/btn:text-white" />
-            <span>High-Res PNG</span>
+            PNG
           </button>
-
           <button
             onClick={() => handleInitiateDownload('svg')}
-            className="flex flex-col items-center justify-center py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-indigo-600 hover:text-white border border-slate-700/80 text-slate-200 transition text-xs font-semibold group/btn"
+            className="py-2 rounded-lg bg-slate-800 hover:bg-indigo-600 hover:text-white border border-slate-700/80 text-slate-200 transition text-xs font-semibold text-center"
           >
-            <FileCode className="w-4 h-4 mb-1 text-cyan-400 group-hover/btn:text-white" />
-            <span>Vector SVG</span>
+            SVG
           </button>
-
           <button
             onClick={() => handleInitiateDownload('pdf')}
-            className="flex flex-col items-center justify-center py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-indigo-600 hover:text-white border border-slate-700/80 text-slate-200 transition text-xs font-semibold group/btn"
+            className="py-2 rounded-lg bg-slate-800 hover:bg-indigo-600 hover:text-white border border-slate-700/80 text-slate-200 transition text-xs font-semibold text-center"
           >
-            <Printer className="w-4 h-4 mb-1 text-emerald-400 group-hover/btn:text-white" />
-            <span>Print PDF</span>
+            PDF Print
           </button>
         </div>
 
-        <div className="w-full mt-3 flex items-center justify-between pt-3 border-t border-slate-800 text-xs text-slate-400">
-          <span className="truncate max-w-[220px] font-mono text-[11px]">
+        {/* Copy Payload shortcut */}
+        <div className="w-full mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <span className="truncate max-w-[200px] font-mono text-[11px] text-slate-400">
             {payload}
           </span>
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 transition"
+            className="text-indigo-400 hover:text-indigo-300 font-medium ml-2 shrink-0"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Copied' : 'Copy'}</span>
+            {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
       </div>
 
+      {/* Download Interstitial Modal */}
       {showDownloadModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl relative">
             <button
               onClick={() => setShowDownloadModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg"
+              className="absolute top-3 right-3 text-slate-400 hover:text-white text-sm"
             >
-              <X className="w-5 h-5" />
+              ✕
             </button>
 
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white">Preparing Your {downloadFormat.toUpperCase()} File</h3>
-                <p className="text-xs text-slate-400">Generated with StrixDevs Direct Permanent Engine</p>
-              </div>
+            <h3 className="text-base font-bold text-white mb-1">
+              Downloading {downloadFormat.toUpperCase()}
+            </h3>
+            <p className="text-xs text-slate-400 mb-4">
+              Permanent static code powered by StrixDevs.
+            </p>
+
+            {/* Ad container */}
+            <div className="my-3 p-4 rounded-xl border border-dashed border-slate-800 bg-slate-950/60 text-center">
+              <span className="text-[10px] uppercase font-mono text-slate-500 block mb-2">Advertisement</span>
+              <p className="text-xs font-semibold text-slate-200">Need Custom Software in NY, Chicago, or Canada?</p>
+              <a
+                href="https://strixdevs.com"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-block text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-1.5 rounded-lg transition"
+              >
+                Visit StrixDevs.com
+              </a>
             </div>
 
-            <div className="my-4 p-4 rounded-xl border border-dashed border-indigo-500/30 bg-slate-950/60 flex flex-col items-center text-center">
-              <span className="text-[10px] uppercase font-mono text-slate-500 mb-1">Sponsored Advertisement</span>
-              <div className="w-full h-36 bg-gradient-to-br from-indigo-950/50 via-slate-900 to-slate-950 rounded-lg flex flex-col items-center justify-center p-3 border border-slate-800">
-                <Sparkles className="w-6 h-6 text-indigo-400 mb-1" />
-                <h4 className="text-xs font-semibold text-slate-200">Grow Your Business in Chicago, NY or Canada</h4>
-                <p className="text-[11px] text-slate-400 mt-1 max-w-xs">
-                  StrixDevs crafts world-class web applications, mobile platforms, and AI engines.
-                </p>
-                <a
-                  href="https://strixdevs.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1 rounded-md transition"
-                >
-                  Visit StrixDevs.com →
-                </a>
-              </div>
-            </div>
-
+            {/* Download countdown */}
             {downloadReady ? (
               <button
                 onClick={executeDownload}
-                className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition animate-bounce"
+                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition"
               >
-                <Download className="w-4 h-4" />
-                <span>Download {downloadFormat.toUpperCase()} Now</span>
+                Save {downloadFormat.toUpperCase()} File
               </button>
             ) : (
-              <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-800 text-slate-300 font-medium text-sm">
-                <Clock className="w-4 h-4 text-indigo-400 animate-spin" />
-                <span>Your file is ready in {modalTimer}s...</span>
+              <div className="text-center py-2 text-xs text-slate-400">
+                Ready in {modalTimer}s...
               </div>
             )}
           </div>

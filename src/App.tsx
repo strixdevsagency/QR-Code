@@ -16,7 +16,6 @@ import type {
   CryptoData,
 } from './types';
 import { generatePayload } from './utils/qrPayload';
-import { Sparkles, Check } from 'lucide-react';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'generate' | 'scan'>('generate');
@@ -34,7 +33,7 @@ export function App() {
     firstName: 'Alex',
     lastName: 'Vance',
     company: 'StrixDevs Partner',
-    title: 'Managing Director',
+    title: 'Director',
     phone: '+1 (312) 555-0144',
     email: 'alex@strixdevs.com',
     website: 'https://strixdevs.com',
@@ -76,7 +75,6 @@ export function App() {
     validityTerm: 'lifetime',
   });
 
-  // Compute standard payload string
   const payload = generatePayload(payloadType, {
     url: urlValue,
     text: textValue,
@@ -87,7 +85,6 @@ export function App() {
     crypto: cryptoData,
   });
 
-  // Auto-Fix contrast if user accidentally selected light dots on white bg
   const handleAutoFixContrast = () => {
     setDesign((prev) => ({
       ...prev,
@@ -108,56 +105,32 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Navigation Header */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onNavigateToSection={scrollToSection}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16">
-        
-        {/* Top AdSense Leaderboard Placement (CLS Protected) */}
-        <AdBanner slotType="leaderboard" className="mb-6" />
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-5 pb-12">
+        {/* AdSense Top Banner */}
+        <AdBanner slotType="leaderboard" className="mb-4" />
 
         {/* Hero Section */}
-        <div className="text-center max-w-3xl mx-auto my-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-4">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Built by StrixDevs • Serving Chicago, New York & Canada</span>
-          </div>
-          
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-            100% Free Lifetime <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-300 to-indigo-300">
-              QR Code Generator & Scanner
-            </span>
+        <div className="text-center max-w-2xl mx-auto my-5">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400 block mb-1.5">
+            100% Free Lifetime Utility
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Permanent QR Code Generator & Scanner
           </h1>
-
-          <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Never worry about your QR codes expiring after a 14-day trial. Direct static encoding ensures your business cards, menus, and stickers work permanently with zero monthly fees.
+          <p className="mt-2 text-xs sm:text-sm text-slate-400">
+            Direct static codes with zero expiration. Export vector SVG, PDF, or PNG. No subscription traps.
           </p>
-
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
-            <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-              <Check className="w-3.5 h-3.5" /> Direct Static Codes
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-              <Check className="w-3.5 h-3.5" /> High-DPI Vector Print Exports
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-              <Check className="w-3.5 h-3.5" /> No Credit Card Required
-            </span>
-          </div>
         </div>
 
-        {/* Main Interactive Tool Area */}
+        {/* Tool Section */}
         {activeTab === 'generate' ? (
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Left Column: QR Generator Form Controls (7 cols) */}
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <div className="lg:col-span-7">
               <QRGenerator
                 payloadType={payloadType}
@@ -181,36 +154,28 @@ export function App() {
               />
             </div>
 
-            {/* Right Column: Live QR Preview & Sticky Side Rail Ad (5 cols) */}
-            <div className="lg:col-span-5 flex flex-col items-center gap-6 lg:sticky lg:top-24">
+            <div className="lg:col-span-5 flex flex-col items-center gap-4 lg:sticky lg:top-20">
               <QRPreview
                 payload={payload}
                 design={design}
                 onAutoFixContrast={handleAutoFixContrast}
               />
-
-              {/* Sidebar AdSense Placement (CLS Protected) */}
               <AdBanner slotType="rectangle" className="w-full" />
             </div>
           </div>
         ) : (
-          <div className="mt-8">
+          <div className="mt-6">
             <QRScanner />
           </div>
         )}
 
-        {/* Mid-Page In-Feed Ad Banner */}
-        <AdBanner slotType="in-feed" className="my-12" />
+        <AdBanner slotType="in-feed" className="my-10" />
 
-        {/* The Educational "Why Other QR Codes Expire" Section */}
         <ComparisonSection />
 
-        {/* Corporate Sponsorship Intake Form (Direct Monetization requested by user) */}
         <SponsorSection />
-
       </main>
 
-      {/* Global Footer */}
       <Footer />
     </div>
   );

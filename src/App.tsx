@@ -10,7 +10,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
 import { AdBanner } from './components/AdBanner';
 import { ComparisonSection } from './components/ComparisonSection';
-import { SponsorMarquee } from './components/SponsorMarquee';
+import { SponsorSection } from './components/SponsorSection';
 import { Footer } from './components/Footer';
 import type {
   QRType,
@@ -22,7 +22,7 @@ import type {
   SavedQRCode,
 } from './types';
 import { generatePayload } from './utils/qrPayload';
-import { ShieldCheck, Zap, Sparkles } from 'lucide-react';
+import { Sparkles, Check } from 'lucide-react';
 
 function MainAppContent() {
   const { isAdmin } = useAuth();
@@ -42,7 +42,7 @@ function MainAppContent() {
     firstName: 'Alex',
     lastName: 'Vance',
     company: 'StrixDevs Partner',
-    title: 'Director',
+    title: 'Managing Director',
     phone: '+1 (312) 555-0144',
     email: 'alex@strixdevs.com',
     website: 'https://strixdevs.com',
@@ -66,7 +66,7 @@ function MainAppContent() {
     amount: '0.01',
   });
 
-  // QR Design Customization
+  // QR Design Customization (Original design defaults)
   const [design, setDesign] = useState<QRDesignOptions>({
     dotsType: 'rounded',
     dotsColor: '#0f172a',
@@ -84,6 +84,7 @@ function MainAppContent() {
     validityTerm: 'lifetime',
   });
 
+  // Compute standard payload string
   const payload = generatePayload(payloadType, {
     url: urlValue,
     text: textValue,
@@ -94,6 +95,7 @@ function MainAppContent() {
     crypto: cryptoData,
   });
 
+  // Auto-Fix contrast if user accidentally selected light dots on white bg
   const handleAutoFixContrast = () => {
     setDesign((prev) => ({
       ...prev,
@@ -126,8 +128,8 @@ function MainAppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#030712] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-300">
-      {/* Sleek Floating Header */}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+      {/* Navigation Header */}
       <Header
         activeView={activeView}
         setActiveView={setActiveView}
@@ -135,51 +137,48 @@ function MainAppContent() {
         onNavigateToSection={scrollToSection}
       />
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-6 pb-20">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16">
         
-        {/* AdSense Slot (Auto-collapsed when empty) */}
-        <AdBanner slotType="leaderboard" className="mb-4" />
-
-        {/* VIEW 1: GENERATOR */}
+        {/* VIEW 1: GENERATOR (The core highlight of the website) */}
         {activeView === 'generator' && (
           <>
-            {/* The High-Impact Psychological Hero Stage */}
-            <div className="text-center max-w-3xl mx-auto my-8 sm:my-12">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 font-bold text-xs mb-5 shadow-xs">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Zero Expiration • Zero Tracking • 100% Free Forever</span>
+            {/* The First Design's Acclaimed Hero Section */}
+            <div className="text-center max-w-3xl mx-auto my-6 sm:my-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-4">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Built by StrixDevs • Serving Chicago, New York & Canada</span>
               </div>
               
-              <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
-                The QR Code Generator <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-400">
-                  That Never Dies.
+              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+                100% Free Lifetime <br className="hidden sm:inline" />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-300 to-indigo-300">
+                  QR Code Generator & Scanner
                 </span>
               </h1>
 
-              <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-xl mx-auto leading-relaxed font-medium">
-                No 14-day trials. No \$35/month surprises. Direct static encoding ensures your business cards, menus, and stickers work permanently.
+              <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                Never worry about your QR codes expiring after a 14-day trial. Direct static encoding ensures your business cards, menus, and stickers work permanently with zero monthly fees.
               </p>
 
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> Permanent Direct Encoding
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
+                <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                  <Check className="w-3.5 h-3.5" /> Direct Static Codes
                 </span>
                 <span>•</span>
-                <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                  <Zap className="w-4 h-4 text-indigo-500" /> High-DPI Vector Print Exports
+                <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                  <Check className="w-3.5 h-3.5" /> High-DPI Vector Print Exports
                 </span>
                 <span>•</span>
-                <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                  <Sparkles className="w-4 h-4 text-amber-500" /> Trusted in Chicago & New York
+                <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                  <Check className="w-3.5 h-3.5" /> No Credit Card Required
                 </span>
               </div>
             </div>
 
-            {/* The Studio Canvas Generator Stage */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-8">
+            {/* Main Interactive Tool Area (Highlighted Front and Center) */}
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
-              {/* Left Column: Generator Form (7 cols) */}
+              {/* Left Column: QR Generator Form Controls (7 cols) */}
               <div className="lg:col-span-7">
                 <QRGenerator
                   payloadType={payloadType}
@@ -203,7 +202,7 @@ function MainAppContent() {
                 />
               </div>
 
-              {/* Right Column: Studio Showcase Canvas (5 cols) */}
+              {/* Right Column: Live QR Preview & Non-Intrusive Sidebar Ad (5 cols) */}
               <div className="lg:col-span-5 flex flex-col items-center gap-6 lg:sticky lg:top-24">
                 <QRPreview
                   payload={payload}
@@ -213,23 +212,20 @@ function MainAppContent() {
                   onOpenAuth={() => setIsAuthModalOpen(true)}
                 />
 
-                {/* Sidebar Ad Slot (Auto-collapsed when empty) */}
+                {/* Sidebar AdSense Placement (Collapses automatically if no ads configured) */}
                 <AdBanner slotType="rectangle" className="w-full" />
               </div>
             </div>
 
-            {/* In-Feed Ad Slot (Auto-collapsed when empty) */}
-            <AdBanner slotType="in-feed" className="my-10" />
-
-            {/* Architecture Truth Comparison */}
+            {/* The Educational "Why Other QR Codes Expire" Section */}
             <ComparisonSection />
 
-            {/* The Brand Sponsor Logo Slider / Marquee */}
-            <SponsorMarquee />
+            {/* Corporate Sponsorship Intake Form (Direct B2B form at bottom, no logo slider) */}
+            <SponsorSection />
           </>
         )}
 
-        {/* VIEW 2: IN-BROWSER SCANNER */}
+        {/* VIEW 2: SCANNER */}
         {activeView === 'scanner' && (
           <div className="mt-8">
             <QRScanner />
@@ -250,6 +246,7 @@ function MainAppContent() {
         )}
       </main>
 
+      {/* Global Footer */}
       <Footer />
 
       {/* Auth Modal */}

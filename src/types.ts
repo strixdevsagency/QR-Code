@@ -51,3 +51,62 @@ export interface CryptoData {
   address: string;
   amount?: string;
 }
+
+/* User & Authentication */
+export type UserRole = 'admin' | 'user';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+/* User Dashboard Assets */
+export interface SavedQRCode {
+  id: string;
+  userId: string;
+  title: string;
+  qrType: QRType;
+  payload: string;
+  design: QRDesignOptions;
+  downloadCount: number;
+  createdAt: string;
+}
+
+export interface SavedLogo {
+  id: string;
+  userId: string;
+  name: string;
+  url: string;
+  createdAt: string;
+}
+
+/* Admin AdSense Configuration */
+export interface AdSlotConfig {
+  id: 'leaderboard' | 'sidebar' | 'infeed' | 'modal';
+  name: string;
+  description: string;
+  dimensions: string;
+  enabled: boolean;
+  adClient: string; // e.g. "ca-pub-XXXXXXXXXXXX"
+  adSlot: string;   // e.g. "1234567890"
+  customHtml?: string;
+}
+
+/* Corporate Sponsorship Inquiries */
+export type SponsorStatus = 'new' | 'contacted' | 'contract_sent' | 'closed';
+
+export interface SponsorshipLead {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  website?: string;
+  region: string;
+  tier: string;
+  message: string;
+  status: SponsorStatus;
+  createdAt: string;
+}

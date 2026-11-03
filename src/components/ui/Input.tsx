@@ -17,7 +17,7 @@ export const Input: React.FC<InputProps> = ({
   const inputId = id || props.name;
 
   return (
-    <div className="w-full space-y-1.5">
+    <div className="w-full space-y-1.5 text-left">
       {label && (
         <label htmlFor={inputId} className="block text-xs font-semibold text-slate-300">
           {label}
@@ -25,7 +25,7 @@ export const Input: React.FC<InputProps> = ({
       )}
       <input
         id={inputId}
-        className={`w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500 transition placeholder:text-slate-500 ${
+        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder:text-slate-500 ${
           error ? 'border-rose-500' : ''
         } ${className}`}
         {...props}
@@ -53,7 +53,7 @@ export const Textarea: React.FC<TextareaProps> = ({
   const textareaId = id || props.name;
 
   return (
-    <div className="w-full space-y-1.5">
+    <div className="w-full space-y-1.5 text-left">
       {label && (
         <label htmlFor={textareaId} className="block text-xs font-semibold text-slate-300">
           {label}
@@ -61,7 +61,7 @@ export const Textarea: React.FC<TextareaProps> = ({
       )}
       <textarea
         id={textareaId}
-        className={`w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500 transition placeholder:text-slate-500 ${
+        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder:text-slate-500 ${
           error ? 'border-rose-500' : ''
         } ${className}`}
         {...props}

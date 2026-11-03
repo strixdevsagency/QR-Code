@@ -2,19 +2,17 @@ import React from 'react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="border-t border-slate-800/80 bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 mt-20">
+    <footer className="border-t border-slate-800 bg-[#080c14] py-12 px-4 sm:px-6 lg:px-8 mt-20">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center text-white font-bold text-xs shadow-md shadow-indigo-500/20">
+              <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
                 SQ
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">
-                Strix<span className="text-indigo-400">QR</span>
-              </span>
+              <span className="text-xl font-bold text-white tracking-tight">StrixQR</span>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
               A high-utility, non-expiring QR code engine built by <strong className="text-slate-200">StrixDevs</strong>. Serving businesses, restaurants, and digital agencies across Chicago, New York, Toronto, and worldwide with 100% free lifetime static codes.
@@ -39,20 +37,20 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <a href="https://strixdevs.com" target="_blank" rel="noreferrer" className="hover:text-indigo-400 transition">
+                <a href="https://strixdevs.com" target="_blank" rel="noreferrer" className="hover:text-blue-400 transition">
                   Custom Web & App Development ↗
                 </a>
               </li>
               <li className="text-slate-400">
-                Strix Password Vault <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-1 py-0.5 rounded ml-1">Coming Soon</span>
+                Strix Password Vault <span className="text-[10px] bg-blue-950/60 text-blue-300 px-1.5 py-0.5 rounded ml-1 border border-blue-800/40">Coming Soon</span>
               </li>
               <li>
-                <a href="#sponsor-section" className="hover:text-indigo-400 transition">
+                <a href="#sponsor-section" className="hover:text-blue-400 transition">
                   Corporate Sponsorships
                 </a>
               </li>
               <li>
-                <a href="/llms.txt" target="_blank" className="hover:text-indigo-400 transition">
+                <a href="/llms.txt" target="_blank" className="hover:text-blue-400 transition">
                   AI Documentation (llms.txt)
                 </a>
               </li>
@@ -78,7 +76,7 @@ export const Footer: React.FC = () => {
           <p>© {new Date().getFullYear()} StrixDevs (strix-devs). All rights reserved.</p>
           <p>
             Engineered by{' '}
-            <a href="https://strixdevs.com" target="_blank" rel="noreferrer" className="text-indigo-400 hover:text-indigo-300 font-semibold">
+            <a href="https://strixdevs.com" target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 font-semibold">
               StrixDevs
             </a>
           </p>
@@ -87,4 +85,3 @@ export const Footer: React.FC = () => {
     </footer>
   );
 };
-

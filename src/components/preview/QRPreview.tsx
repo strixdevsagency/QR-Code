@@ -35,9 +35,9 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
   // Status configuration
   const statusConfig = {
-    lifetime: { text: 'Active Free • Lifetime Guarantee', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-    one_time: { text: 'One-Time Scan • Self-Destructs', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-    time_limited: { text: `Time-Limited • Expires in ${timeLimitPreset}`, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+    lifetime: { text: 'Active Static Code • Lifetime', color: 'text-emerald-400 bg-emerald-950/40 border-emerald-800/40' },
+    one_time: { text: 'One-Time Scan • Auto-Destructs', color: 'text-amber-400 bg-amber-950/40 border-amber-800/40' },
+    time_limited: { text: `Time-Limited • Expires in ${timeLimitPreset}`, color: 'text-blue-300 bg-blue-950/40 border-blue-800/40' },
   }[expiryMode];
 
   const handleSaveToAccount = () => {
@@ -78,13 +78,13 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   };
 
   return (
-    <div className="w-full max-w-[380px] bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl shadow-indigo-950/30 flex flex-col items-center">
+    <div className="w-full max-w-[380px] bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col items-center">
       {/* Expiry / Security Mode Status Badge */}
       <div className="w-full flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80 text-xs">
         <span className={`px-2.5 py-1 rounded-full border text-[11px] font-semibold ${statusConfig.color}`}>
           {statusConfig.text}
         </span>
-        <span className="text-[11px] text-slate-400 font-mono">Level H</span>
+        <span className="text-[11px] text-slate-400 font-mono">Error Level H</span>
       </div>
 
       {/* Render Canvas */}
@@ -118,7 +118,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           onClick={handleSaveToAccount}
           className={saveSuccess ? 'border-emerald-500 text-emerald-400' : ''}
         >
-          {saveSuccess ? '✓ Saved to Your Account' : 'Save to My Account'}
+          {saveSuccess ? '✓ Saved to Account' : 'Save to My Account'}
         </Button>
       </div>
 

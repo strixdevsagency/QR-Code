@@ -41,8 +41,8 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
               onClick={() => setDesign((prev) => ({ ...prev, dotsType: pt.id }))}
               className={`py-2 px-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer text-center ${
                 design.dotsType === pt.id
-                  ? 'border-indigo-500 bg-indigo-500/20 text-white'
-                  : 'border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200'
+                  ? 'border-blue-600 bg-blue-950/40 text-white'
+                  : 'border-slate-800 bg-[#090d16] text-slate-400 hover:text-slate-200'
               }`}
             >
               {pt.label}
@@ -65,8 +65,8 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
                 onClick={() => setDesign((prev) => ({ ...prev, cornerSquareType: sq.id }))}
                 className={`py-2 px-2 rounded-xl border text-xs font-semibold transition cursor-pointer text-center ${
                   design.cornerSquareType === sq.id
-                    ? 'border-indigo-500 bg-indigo-500/20 text-white'
-                    : 'border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200'
+                    ? 'border-blue-600 bg-blue-950/40 text-white'
+                    : 'border-slate-800 bg-[#090d16] text-slate-400 hover:text-slate-200'
                 }`}
               >
                 {sq.label}
@@ -87,8 +87,8 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
                 onClick={() => setDesign((prev) => ({ ...prev, cornerDotType: cd.id }))}
                 className={`py-2 px-2 rounded-xl border text-xs font-semibold transition cursor-pointer text-center ${
                   design.cornerDotType === cd.id
-                    ? 'border-indigo-500 bg-indigo-500/20 text-white'
-                    : 'border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200'
+                    ? 'border-blue-600 bg-blue-950/40 text-white'
+                    : 'border-slate-800 bg-[#090d16] text-slate-400 hover:text-slate-200'
                 }`}
               >
                 {cd.label}
@@ -104,7 +104,7 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
           Color Scheme
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+          <div className="p-3 rounded-xl bg-[#090d16] border border-slate-800 flex items-center justify-between">
             <span className="text-xs text-slate-300 font-medium">QR Dots & Eyes:</span>
             <div className="flex items-center gap-2">
               <input
@@ -124,7 +124,7 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+          <div className="p-3 rounded-xl bg-[#090d16] border border-slate-800 flex items-center justify-between">
             <span className="text-xs text-slate-300 font-medium">Canvas Background:</span>
             <div className="flex items-center gap-2">
               <input
@@ -145,7 +145,7 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
               type="checkbox"
               checked={design.isGradient}
               onChange={(e) => setDesign((p) => ({ ...p, isGradient: e.target.checked }))}
-              className="rounded border-slate-700 text-indigo-600 cursor-pointer"
+              className="rounded border-slate-700 text-blue-600 cursor-pointer"
             />
             <span>2-Color Linear Gradient</span>
           </label>
@@ -154,7 +154,7 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
               <span className="text-slate-400">Gradient End:</span>
               <input
                 type="color"
-                value={design.dotsColorEnd || '#6366f1'}
+                value={design.dotsColorEnd || '#2563eb'}
                 onChange={(e) => setDesign((p) => ({ ...p, dotsColorEnd: e.target.value }))}
                 className="w-6 h-6 rounded border border-slate-700 bg-transparent cursor-pointer"
               />
@@ -166,7 +166,7 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
         <div className="mt-4">
           <div className="flex justify-between text-xs text-slate-400 mb-1">
             <span>Print Safe Margin (Quiet Zone):</span>
-            <span className="font-mono text-indigo-400">{design.margin}px</span>
+            <span className="font-mono text-blue-400">{design.margin}px</span>
           </div>
           <input
             type="range"
@@ -174,7 +174,7 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ design, setDesign 
             max={25}
             value={design.margin}
             onChange={(e) => setDesign((p) => ({ ...p, margin: Number(e.target.value) }))}
-            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
         </div>
       </div>

@@ -19,7 +19,7 @@ export const LogoLibrary: React.FC<LogoLibraryProps> = ({
         <p className="text-xs text-slate-400">
           Saved company logos and branding assets to use when generating QR codes.
         </p>
-        <label className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs cursor-pointer transition">
+        <label className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs cursor-pointer transition">
           + Upload Brand Logo
           <input
             type="file"

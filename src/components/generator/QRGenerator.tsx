@@ -66,26 +66,26 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   const [activeTab, setActiveTab] = useState<'content' | 'style' | 'logo'>('content');
 
   return (
-    <div className="w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+    <div className="w-full bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-sm">
       {/* 3 Step Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-800 pb-4 mb-6">
         <button
           onClick={() => setActiveTab('content')}
           className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
             activeTab === 'content'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-              : 'text-slate-400 hover:text-slate-200 bg-slate-800/60'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white bg-[#090d16]'
           }`}
         >
-          1. Content & Mode
+          1. Content & Expiration
         </button>
 
         <button
           onClick={() => setActiveTab('style')}
           className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
             activeTab === 'style'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-              : 'text-slate-400 hover:text-slate-200 bg-slate-800/60'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white bg-[#090d16]'
           }`}
         >
           2. Style & Colors
@@ -95,8 +95,8 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
           onClick={() => setActiveTab('logo')}
           className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
             activeTab === 'logo'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-              : 'text-slate-400 hover:text-slate-200 bg-slate-800/60'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-white bg-[#090d16]'
           }`}
         >
           3. Center Logo

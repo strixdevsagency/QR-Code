@@ -35,12 +35,12 @@ export const SponsorSection: React.FC = () => {
 
   return (
     <section id="sponsor-section" className="my-16 max-w-4xl mx-auto px-4 scroll-mt-24">
-      <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-slate-900 to-slate-950 p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+      <div className="rounded-2xl border border-slate-800 bg-[#111827] p-6 sm:p-8 shadow-sm">
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wider block mb-2">
-            Direct Corporate Sponsorships
+          <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider block mb-1.5">
+            Corporate Partnerships
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             Partner & Sponsor with StrixDevs
           </h2>
           <p className="text-slate-400 mt-2 text-xs sm:text-sm">
@@ -49,15 +49,15 @@ export const SponsorSection: React.FC = () => {
         </div>
 
         {submitted ? (
-          <div className="p-8 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-center space-y-3">
-            <span className="text-2xl block">✓</span>
+          <div className="p-8 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-3">
+            <span className="text-2xl text-emerald-400 block font-bold">✓</span>
             <h3 className="text-lg font-bold text-white">Inquiry Received by StrixDevs</h3>
             <p className="text-xs text-slate-300 max-w-md mx-auto">
               Our enterprise partnerships team will review your placement request and reach out at <strong>{formData.email}</strong> within 1 business day.
             </p>
             <button
               onClick={() => setSubmitted(false)}
-              className="text-xs text-indigo-400 hover:text-indigo-300 underline font-medium pt-2 cursor-pointer"
+              className="text-xs text-blue-400 hover:text-blue-300 underline font-medium pt-2 cursor-pointer"
             >
               Submit another inquiry
             </button>
@@ -66,14 +66,14 @@ export const SponsorSection: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="Your Full Name"
+                label="Full Name"
                 required
                 placeholder="Alex Vance"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
               <Input
-                label="Company / Brand Name"
+                label="Company / Brand"
                 required
                 placeholder="Apex POS Solutions"
                 value={formData.company}
@@ -91,7 +91,7 @@ export const SponsorSection: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
               <Input
-                label="Website URL"
+                label="Company Website"
                 type="url"
                 placeholder="https://apexpos.com"
                 value={formData.website}
@@ -100,12 +100,12 @@ export const SponsorSection: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Target Geographic Market</label>
+              <div className="space-y-1.5 text-left">
+                <label className="block text-xs font-semibold text-slate-300">Geographic Market</label>
                 <select
                   value={formData.region}
                   onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
                 >
                   <option value="Chicago & Midwest Area">Chicago & Midwest Area</option>
                   <option value="New York & Tri-State Area">New York & Tri-State Area</option>
@@ -115,12 +115,12 @@ export const SponsorSection: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Sponsorship Placement</label>
+              <div className="space-y-1.5 text-left">
+                <label className="block text-xs font-semibold text-slate-300">Sponsorship Placement</label>
                 <select
                   value={formData.tier}
                   onChange={(e) => setFormData({ ...formData, tier: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
                 >
                   <option value="Top Leaderboard Banner Sponsor">Top Leaderboard Banner Sponsor</option>
                   <option value="Sidebar Sticky Partner">Sticky Preview Sidebar Placement</option>
@@ -131,7 +131,7 @@ export const SponsorSection: React.FC = () => {
             </div>
 
             <Textarea
-              label="Campaign Objectives / Message"
+              label="Objectives & Message"
               rows={3}
               required
               placeholder="Tell us about your brand, preferred duration, and sponsorship goals..."
@@ -140,7 +140,7 @@ export const SponsorSection: React.FC = () => {
             />
 
             <Button type="submit" variant="primary" fullWidth size="lg">
-              Submit Sponsorship Inquiry to StrixDevs
+              Submit Sponsorship Inquiry
             </Button>
           </form>
         )}
@@ -148,4 +148,3 @@ export const SponsorSection: React.FC = () => {
     </section>
   );
 };
-

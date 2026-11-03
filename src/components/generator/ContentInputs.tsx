@@ -50,7 +50,7 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
               value={urlValue}
               onChange={(e) => setUrlValue(e.target.value)}
               placeholder="https://strixdevs.com"
-              className="w-full pl-3.5 pr-20 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500"
+              className="w-full pl-3.5 pr-20 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
             />
             <span className="absolute right-3 top-2.5 text-[11px] text-emerald-400 font-mono">
               HTTPS Direct
@@ -70,7 +70,7 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
                 value={wifiData.ssid}
                 onChange={(e) => setWifiData({ ...wifiData, ssid: e.target.value })}
                 placeholder="Cafe-Guest"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -80,7 +80,7 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
                 value={wifiData.password}
                 onChange={(e) => setWifiData({ ...wifiData, password: e.target.value })}
                 placeholder="Passphrase"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -91,7 +91,7 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
                 name="enc"
                 checked={wifiData.encryption === 'WPA'}
                 onChange={() => setWifiData({ ...wifiData, encryption: 'WPA' })}
-                className="text-indigo-600 cursor-pointer"
+                className="text-blue-600 cursor-pointer"
               />
               <span>WPA/WPA2/WPA3</span>
             </label>
@@ -101,7 +101,7 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
                 name="enc"
                 checked={wifiData.encryption === 'nopass'}
                 onChange={() => setWifiData({ ...wifiData, encryption: 'nopass' })}
-                className="text-indigo-600 cursor-pointer"
+                className="text-blue-600 cursor-pointer"
               />
               <span>Open Network</span>
             </label>

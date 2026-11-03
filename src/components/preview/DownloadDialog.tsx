@@ -88,12 +88,12 @@ export const DownloadDialog: React.FC<DownloadDialogProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Preparing Your Print-Ready Export">
       <div className="space-y-4 text-center py-2">
         <p className="text-xs text-slate-400">
-          Compiling high-resolution <strong className="text-indigo-400 uppercase">{format}</strong> package.
+          Compiling high-resolution <strong className="text-blue-400 uppercase">{format}</strong> package.
         </p>
 
         {/* Sponsor/Ad notice within modal */}
-        <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400">
-          <span className="text-[10px] uppercase font-mono tracking-widest text-indigo-400 block mb-1">
+        <div className="p-3.5 rounded-xl bg-[#090d16] border border-slate-800 text-xs text-slate-400">
+          <span className="text-[10px] uppercase font-mono tracking-widest text-blue-400 block mb-1">
             Sponsored by StrixDevs
           </span>
           <p className="text-slate-300">Need custom web apps or software? StrixDevs builds digital products for North American businesses.</p>

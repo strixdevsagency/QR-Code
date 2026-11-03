@@ -43,8 +43,8 @@ export const LogoControls: React.FC<LogoControlsProps> = ({ design, setDesign })
               onClick={() => setDesign((p) => ({ ...p, logoUrl: lg.url }))}
               className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition cursor-pointer ${
                 design.logoUrl === lg.url
-                  ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-500'
-                  : 'border-slate-800 bg-slate-800/40 text-slate-300 hover:border-slate-700'
+                  ? 'border-blue-600 bg-blue-950/40 text-blue-300 ring-1 ring-blue-600'
+                  : 'border-slate-800 bg-[#090d16] text-slate-300 hover:border-slate-700'
               }`}
             >
               <img src={lg.url} alt={lg.label} className="w-5 h-5 object-contain" />
@@ -85,7 +85,7 @@ export const LogoControls: React.FC<LogoControlsProps> = ({ design, setDesign })
         <div className="pt-2">
           <div className="flex justify-between text-xs text-slate-400 mb-1">
             <span>Logo Proportion:</span>
-            <span className="font-mono text-indigo-400">{Math.round(design.logoSize * 100)}%</span>
+            <span className="font-mono text-blue-400">{Math.round(design.logoSize * 100)}%</span>
           </div>
           <input
             type="range"
@@ -94,7 +94,7 @@ export const LogoControls: React.FC<LogoControlsProps> = ({ design, setDesign })
             step={0.02}
             value={design.logoSize}
             onChange={(e) => setDesign((p) => ({ ...p, logoSize: Number(e.target.value) }))}
-            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
           <p className="text-[11px] text-slate-500 mt-1">
             Auto-locks to Error Correction Level H (30% redundancy) to guarantee scannability.

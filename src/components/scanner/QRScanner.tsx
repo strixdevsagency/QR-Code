@@ -146,7 +146,7 @@ export const QRScanner: React.FC = () => {
 
       {/* File Upload Option */}
       <div className="pt-2 border-t border-slate-800 text-center">
-        <label className="text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer font-semibold underline">
+        <label className="text-xs text-blue-400 hover:text-blue-300 cursor-pointer font-semibold underline">
           Or upload QR image from file
           <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
         </label>
@@ -154,10 +154,10 @@ export const QRScanner: React.FC = () => {
 
       {/* Scan Results */}
       {scanResult && (
-        <div className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 space-y-2">
+        <div className="p-4 rounded-2xl bg-[#090d16] border border-emerald-500/30 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Decoded Content</span>
-            <button onClick={handleCopy} className="text-xs text-indigo-400 hover:text-indigo-300 underline cursor-pointer">
+            <button onClick={handleCopy} className="text-xs text-blue-400 hover:text-blue-300 underline cursor-pointer">
               {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
@@ -169,7 +169,7 @@ export const QRScanner: React.FC = () => {
               href={scanResult}
               target="_blank"
               rel="noreferrer"
-              className="inline-block mt-1 text-xs text-indigo-400 hover:text-indigo-300 underline font-semibold"
+              className="inline-block mt-1 text-xs text-blue-400 hover:text-blue-300 underline font-semibold"
             >
               Open Link in New Tab ↗
             </a>

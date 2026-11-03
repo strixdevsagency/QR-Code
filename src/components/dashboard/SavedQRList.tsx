@@ -80,7 +80,7 @@ export const SavedQRList: React.FC<SavedQRListProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-              <span className="font-mono uppercase text-indigo-400">{qr.qrType}</span>
+              <span className="font-mono uppercase text-blue-400">{qr.qrType}</span>
               <span>•</span>
               <span>Downloads: {qr.downloadCount || 0}</span>
               <span>•</span>

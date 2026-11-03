@@ -10,9 +10,9 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="p-6 rounded-2xl bg-[#111827] border border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">
+          <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
             StrixDevs Administrative Suite
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-white mt-1">Platform Control Center</h2>
@@ -35,8 +35,8 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setTab(t.id as any)}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
               tab === t.id
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-[#111827] border border-slate-800 text-slate-400 hover:text-white'
             }`}
           >
             {t.label}
@@ -52,4 +52,3 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 };
-

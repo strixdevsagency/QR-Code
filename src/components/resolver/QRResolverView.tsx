@@ -70,7 +70,7 @@ export const QRResolverView: React.FC<QRResolverViewProps> = ({ codeId, onClose 
 
             {resolution.destination?.startsWith('http') ? (
               <div className="space-y-3">
-                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-indigo-400 break-all font-mono">
+                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-blue-400 break-all font-mono">
                   {resolution.destination}
                 </div>
                 <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export const QRResolverView: React.FC<QRResolverViewProps> = ({ codeId, onClose 
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-400 uppercase font-mono">Decrypted Content</span>
-                  <button onClick={() => handleCopy(resolution.destination || '')} className="text-indigo-400 underline">
+                  <button onClick={() => handleCopy(resolution.destination || '')} className="text-blue-400 underline cursor-pointer">
                     {copied ? 'Copied' : 'Copy'}
                   </button>
                 </div>

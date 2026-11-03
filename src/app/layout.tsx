@@ -64,14 +64,14 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen">
+      <body className="bg-[#0b0f19] text-slate-100 font-sans antialiased min-h-screen">
         <AppProviders>
           {children}
         </AppProviders>

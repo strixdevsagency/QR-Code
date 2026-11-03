@@ -33,8 +33,8 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
             onClick={() => setPayloadType(t.id)}
             className={`px-3 py-2.5 rounded-xl border text-xs font-semibold transition cursor-pointer text-center ${
               payloadType === t.id
-                ? 'border-indigo-500 bg-indigo-500/20 text-white shadow-sm'
-                : 'border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                ? 'border-blue-600 bg-blue-950/40 text-white shadow-sm'
+                : 'border-slate-800 bg-[#090d16] text-slate-400 hover:text-slate-200 hover:border-slate-700'
             }`}
           >
             {t.label}

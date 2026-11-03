@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'elevated' | 'glass';
+  variant?: 'default' | 'elevated' | 'subtle';
   padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
@@ -12,19 +12,19 @@ export const Card: React.FC<CardProps> = ({
   className = '',
   ...props
 }) => {
-  const base = 'rounded-3xl border border-slate-800 transition-colors duration-200';
+  const base = 'rounded-2xl border border-slate-800 transition-colors';
 
   const variants = {
-    default: 'bg-slate-900 shadow-xl shadow-indigo-950/20',
-    elevated: 'bg-slate-900/90 backdrop-blur-md shadow-2xl shadow-indigo-950/40',
-    glass: 'bg-slate-900/60 backdrop-blur-sm',
+    default: 'bg-[#111827] shadow-sm',
+    elevated: 'bg-[#111827] shadow-md border-slate-750',
+    subtle: 'bg-[#0f172a]/60',
   }[variant];
 
   const paddings = {
     none: 'p-0',
     sm: 'p-4',
-    md: 'p-6 sm:p-7',
-    lg: 'p-6 sm:p-10',
+    md: 'p-6',
+    lg: 'p-6 sm:p-8',
   }[padding];
 
   return (

@@ -1,0 +1,14 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/auth/route": "/api/auth",
+  "/api/config/route": "/api/config",
+  "/api/qr/route": "/api/qr",
+  "/api/resolve/[codeId]/route": "/api/resolve/[codeId]",
+  "/api/sponsors/route": "/api/sponsors",
+  "/llms.txt/route": "/llms.txt",
+  "/page": "/",
+  "/r/[codeId]/page": "/r/[codeId]",
+  "/robots.txt/route": "/robots.txt",
+  "/sitemap.xml/route": "/sitemap.xml"
+}

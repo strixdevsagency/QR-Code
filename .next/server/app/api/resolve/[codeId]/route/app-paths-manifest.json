@@ -1,0 +1,3 @@
+{
+  "/api/resolve/[codeId]/route": "app/api/resolve/[codeId]/route.js"
+}

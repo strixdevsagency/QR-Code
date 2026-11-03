@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User, UserRole } from '../types';
 import { db } from '../services/db';
@@ -15,44 +17,45 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => db.getCurrentUser());
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    db.setCurrentUser(user);
+    setUser(db.getCurrentUser());
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      db.setCurrentUser(user);
+    }
   }, [user]);
 
   const login = async (email: string): Promise<boolean> => {
-    const existing = db.findUserByEmail(email);
+    const existing = db.loginUser(email);
     if (existing) {
       setUser(existing);
       return true;
     }
-    // Auto-create user if not found for seamless testing
-    const created = db.createUser(email.split('@')[0], email, 'user');
+    const created = db.registerUser(email.split('@')[0], email);
     setUser(created);
     return true;
   };
 
   const register = async (name: string, email: string): Promise<boolean> => {
-    const existing = db.findUserByEmail(email);
-    if (existing) {
-      setUser(existing);
-      return true;
-    }
-    const created = db.createUser(name, email, 'user');
+    const created = db.registerUser(name, email);
     setUser(created);
     return true;
   };
 
   const loginAsDemo = (role: UserRole) => {
     const targetEmail = role === 'admin' ? 'admin@strixdevs.com' : 'user@strixdevs.com';
-    const existing = db.findUserByEmail(targetEmail);
+    const existing = db.loginUser(targetEmail);
     if (existing) {
       setUser(existing);
     }
   };
 
   const logout = () => {
+    db.logout();
     setUser(null);
   };
 

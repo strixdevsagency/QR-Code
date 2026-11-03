@@ -4,6 +4,8 @@ export type DotType = 'square' | 'rounded' | 'dots' | 'classy' | 'classy-rounded
 export type CornerSquareType = 'square' | 'dot' | 'extra-rounded';
 export type CornerDotType = 'square' | 'dot';
 
+export type ExpiryMode = 'lifetime' | 'one_time' | 'time_limited';
+
 export interface QRDesignOptions {
   dotsType: DotType;
   dotsColor: string;
@@ -19,6 +21,18 @@ export interface QRDesignOptions {
   logoUrl?: string;
   logoSize: number;
   validityTerm: 'lifetime' | '1year' | '6months';
+}
+
+export interface DynamicQRConfig {
+  mode: ExpiryMode;
+  maxScans?: number; // e.g. 1 for one_time
+  currentScans: number;
+  expiresAt?: string; // ISO string if time_limited
+  isBurned?: boolean;
+  burnedAt?: string;
+  isRevoked?: boolean;
+  destinationType: QRType;
+  destinationPayload: string;
 }
 
 export interface WifiData {
@@ -73,6 +87,8 @@ export interface SavedQRCode {
   design: QRDesignOptions;
   downloadCount: number;
   createdAt: string;
+  isDynamic: boolean;
+  dynamicConfig?: DynamicQRConfig;
 }
 
 export interface SavedLogo {
@@ -83,7 +99,16 @@ export interface SavedLogo {
   createdAt: string;
 }
 
-/* Admin AdSense Configuration */
+/* Admin AdSense & Google Services Configuration */
+export interface AnalyticsConfig {
+  googleAnalyticsId: string; // e.g. "G-XXXXXXXXXX"
+  googleAnalyticsEnabled: boolean;
+  googleTagManagerId: string; // e.g. "GTM-XXXXXXX"
+  googleTagManagerEnabled: boolean;
+  adSensePublisherId: string; // e.g. "ca-pub-XXXXXXXXXXXXXXXX"
+  adSenseEnabled: boolean;
+}
+
 export interface AdSlotConfig {
   id: 'leaderboard' | 'sidebar' | 'infeed' | 'modal';
   name: string;

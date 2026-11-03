@@ -1,0 +1,6 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: https://strixdevs.com/sitemap.xml

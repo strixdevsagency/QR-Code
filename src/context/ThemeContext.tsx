@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -11,21 +13,27 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem('strix_theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    // Default to dark for modern tech look, or detect system preference
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'dark';
-  });
+  const [theme, setThemeState] = useState<Theme>('dark');
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('strix_theme') as Theme | null;
+      if (saved === 'light' || saved === 'dark') {
+        setThemeState(saved);
+      }
     }
-    localStorage.setItem('strix_theme', theme);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const root = document.documentElement;
+      if (theme === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      localStorage.setItem('strix_theme', theme);
+    }
   }, [theme]);
 
   const toggleTheme = () => {

@@ -1,0 +1,14 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/route": "app/api/auth/route.js",
+  "/api/config/route": "app/api/config/route.js",
+  "/api/qr/route": "app/api/qr/route.js",
+  "/api/resolve/[codeId]/route": "app/api/resolve/[codeId]/route.js",
+  "/api/sponsors/route": "app/api/sponsors/route.js",
+  "/llms.txt/route": "app/llms.txt/route.js",
+  "/page": "app/page.js",
+  "/r/[codeId]/page": "app/r/[codeId]/page.js",
+  "/robots.txt/route": "app/robots.txt/route.js",
+  "/sitemap.xml/route": "app/sitemap.xml/route.js"
+}

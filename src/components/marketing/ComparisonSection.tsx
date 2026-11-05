@@ -11,7 +11,7 @@ export const ComparisonSection: React.FC = () => {
           Direct Static Encoding vs Subscription Traps
         </h2>
         <p className="text-slate-400 max-w-2xl mx-auto mt-2 text-xs sm:text-sm leading-relaxed">
-          In cities like Chicago and New York, hundreds of businesses get trapped printing business cards and menus only for them to deactivate. Here is the technical difference.
+          Every month, thousands of businesses get trapped printing business cards, packaging, and restaurant menus only for them to deactivate. Here is the technical difference.
         </p>
       </div>
 

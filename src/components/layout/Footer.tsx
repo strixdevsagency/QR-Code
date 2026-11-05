@@ -15,17 +15,17 @@ export const Footer: React.FC = () => {
               <span className="text-xl font-bold text-white tracking-tight">StrixQR</span>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
-              A high-utility, non-expiring QR code engine built by <strong className="text-slate-200">StrixDevs</strong>. Serving businesses, restaurants, and digital agencies across Chicago, New York, Toronto, and worldwide with 100% free lifetime static codes.
+              A high-utility, non-expiring QR code engine built by <strong className="text-slate-200">StrixDevs</strong>. Serving businesses, restaurants, and digital creators worldwide with 100% free lifetime static codes.
             </p>
             <div className="flex items-center gap-2 pt-2 text-xs text-slate-400">
               <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                Chicago, IL
+                Global Infrastructure
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                New York, NY
+                Enterprise Grade
               </span>
               <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                Toronto, CA
+                100% Free Lifetime
               </span>
             </div>
           </div>

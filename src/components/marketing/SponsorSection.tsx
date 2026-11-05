@@ -9,7 +9,7 @@ export const SponsorSection: React.FC = () => {
     company: '',
     email: '',
     website: '',
-    region: 'Chicago & Midwest Area',
+    region: 'Worldwide / Global',
     tier: 'Top Leaderboard Banner Sponsor',
     message: '',
   });
@@ -44,7 +44,7 @@ export const SponsorSection: React.FC = () => {
             Partner & Sponsor with StrixDevs
           </h2>
           <p className="text-slate-400 mt-2 text-xs sm:text-sm">
-            Reach thousands of business owners, restaurateurs, and agencies printing QR codes across Chicago, New York, Canada, and North America.
+            Reach thousands of business owners, restaurateurs, and agencies generating and printing high-res QR codes worldwide.
           </p>
         </div>
 
@@ -107,11 +107,11 @@ export const SponsorSection: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, region: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
                 >
-                  <option value="Chicago & Midwest Area">Chicago & Midwest Area</option>
-                  <option value="New York & Tri-State Area">New York & Tri-State Area</option>
-                  <option value="Canada (Toronto, Vancouver, Montreal)">Canada (Toronto, Vancouver, Montreal)</option>
-                  <option value="North America Wide">North America Wide (US & Canada)</option>
-                  <option value="Global">Worldwide / Global</option>
+                  <option value="Worldwide / Global">Worldwide / Global</option>
+                  <option value="North America">North America</option>
+                  <option value="Europe & UK">Europe & United Kingdom</option>
+                  <option value="Asia-Pacific">Asia-Pacific</option>
+                  <option value="Latin America">Latin America</option>
                 </select>
               </div>
 

@@ -4,7 +4,7 @@ export const HeroSection: React.FC = () => {
   return (
     <section className="text-center max-w-3xl mx-auto my-8 sm:my-10">
       <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-medium mb-4">
-        <span>StrixDevs Official Software • Serving Chicago, New York & Canada</span>
+        <span>StrixDevs Official Software • Trusted by Businesses Worldwide</span>
       </div>
 
       <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://strixdevs.com/tools/qr',
     title: 'Strix QR — Free Lifetime QR Code Generator & Scanner',
-    description: 'Create permanent, custom QR codes with high-res SVG and PDF print downloads. Built for businesses in Chicago, New York, Canada, and worldwide.',
+    description: 'Create permanent, custom QR codes with high-res SVG and PDF print downloads. Built for businesses, creators, and developers worldwide.',
     siteName: 'Strix QR',
   },
   twitter: {

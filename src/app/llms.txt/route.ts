@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const content = `# Strix QR — System Information & AI Crawler Manifest
 > Official utility product by StrixDevs (strix-devs).
-> Serving Chicago, New York, Canada, and global digital product ecosystems.
+> Serving businesses, developers, and digital product ecosystems worldwide.
 
 ## Mission & Architecture
 Strix QR is a 100% free lifetime static QR code generator and in-browser camera scanner.

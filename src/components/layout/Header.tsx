@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
             <span className="hidden sm:inline text-slate-600">•</span>
             <span className="hidden sm:inline text-slate-300">
-              Official StrixDevs Utility • Serving Chicago, New York & Canada
+              Official StrixDevs Utility • Trusted by Businesses Worldwide
             </span>
           </div>
           <div className="flex items-center gap-2">

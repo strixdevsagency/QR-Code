@@ -27,7 +27,7 @@ export default function HomePage() {
   const [urlValue, setUrlValue] = useState<string>('https://strixdevs.com');
   const [wifiData, setWifiData] = useState<WifiData>({
     ssid: 'StrixDevs-Guest',
-    password: 'WelcomeChicago2026',
+    password: 'WelcomeGuest2026',
     encryption: 'WPA',
     hidden: false,
   });
@@ -36,15 +36,15 @@ export default function HomePage() {
     lastName: 'Vance',
     company: 'StrixDevs Partner',
     title: 'Managing Director',
-    phone: '+1 (312) 555-0144',
+    phone: '+1 (800) 555-0199',
     email: 'alex@strixdevs.com',
     website: 'https://strixdevs.com',
-    street: '100 N LaSalle St',
-    city: 'Chicago',
+    street: '100 Innovation Way',
+    city: 'Metro City',
     country: 'USA',
   });
   const [whatsappData, setWhatsappData] = useState<WhatsappData>({
-    phone: '13125550144',
+    phone: '18005550199',
     message: 'Hello StrixDevs, I want to inquire about custom software development!',
   });
   const [textValue, setTextValue] = useState<string>('Permanent QR Code created with StrixDevs QR');

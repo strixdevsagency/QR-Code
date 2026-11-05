@@ -75,7 +75,7 @@ export const DEFAULT_QRS: SavedQRCode[] = [
     userId: 'user_demo',
     title: 'Downtown Cafe Guest WiFi',
     qrType: 'wifi',
-    payload: 'WIFI:S:ChicagoCafe-Guest;T:WPA;P:FreshCoffee2026;;',
+    payload: 'WIFI:S:MetroCafe-Guest;T:WPA;P:FreshCoffee2026;;',
     design: {
       dotsType: 'rounded',
       dotsColor: '#0f172a',
@@ -137,7 +137,7 @@ export const DEFAULT_LEADS: SponsorshipLead[] = [
     company: 'Apex Point of Sale Solutions',
     email: 'm.chang@apexpos.com',
     website: 'https://apexpos.example.com',
-    region: 'Chicago & Midwest Area',
+    region: 'North America',
     tier: 'Top Leaderboard Banner Sponsor',
     message: 'Interested in a 3-month exclusive top banner.',
     status: 'new',

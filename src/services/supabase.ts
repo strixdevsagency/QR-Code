@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient, type Session, type User as SupabaseUser } from '@supabase/supabase-js';
+import { getBaseAppUrl } from '../utils/url';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 // Accepts the latest Supabase publishable key format (sb_publishable_...) or fallback legacy anon key
@@ -76,9 +77,9 @@ export async function signInWithOAuth(provider: 'google' = 'google'): Promise<{ 
   if (!supabase) {
     return { error: new Error('Supabase is not configured') };
   }
-  const redirectTo = typeof window !== 'undefined'
-    ? `${window.location.origin}/`
-    : 'https://qr.strixdevs.com/';
+  // Ensure redirect always uses canonical production application URL
+  const baseAppUrl = getBaseAppUrl();
+  const redirectTo = `${baseAppUrl}/`;
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
@@ -101,10 +102,85 @@ export async function signOutUser(): Promise<{ error: Error | null }> {
 }
 
 /**
- * Retrieve the active session
+ * Retrieve the active session (from cached storage)
  */
 export async function getActiveSession(): Promise<Session | null> {
   if (!supabase) return null;
   const { data } = await supabase.auth.getSession();
   return data.session;
+}
+
+/**
+ * Retrieve fresh user data directly from the Supabase Auth server (bypasses stale cached JWT)
+ */
+export async function getFreshUser(): Promise<SupabaseUser | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data?.user) return null;
+    return data.user;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Force a token and claims refresh from the Supabase server
+ */
+export async function refreshSession(): Promise<Session | null> {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error || !data?.session) return null;
+    return data.session;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Upload an image file to Supabase Cloud Storage ('logos' bucket)
+ * Returns the permanent public CDN URL and storage path
+ */
+export async function uploadImageToSupabase(
+  userId: string,
+  file: File
+): Promise<{ url: string | null; storagePath: string | null; error: Error | null }> {
+  if (!supabase) {
+    return { url: null, storagePath: null, error: new Error('Supabase is not configured') };
+  }
+
+  try {
+    const fileExt = file.name.split('.').pop() || 'png';
+    const cleanExt = fileExt.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${cleanExt}`;
+
+    const { data, error } = await supabase.storage.from('logos').upload(fileName, file, {
+      cacheControl: '31536000',
+      upsert: true,
+      contentType: file.type || 'image/png',
+    });
+
+    if (error) {
+      return { url: null, storagePath: null, error };
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(data.path);
+    return { url: publicUrl, storagePath: data.path, error: null };
+  } catch (err: any) {
+    return { url: null, storagePath: null, error: err };
+  }
+}
+
+/**
+ * Delete an image file from Supabase Storage
+ */
+export async function deleteImageFromSupabase(storagePath: string): Promise<boolean> {
+  if (!supabase || !storagePath) return false;
+  try {
+    const { error } = await supabase.storage.from('logos').remove([storagePath]);
+    return !error;
+  } catch {
+    return false;
+  }
 }

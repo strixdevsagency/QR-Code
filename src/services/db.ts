@@ -21,7 +21,13 @@ import {
   DEFAULT_LICENSE_CODES,
   DEFAULT_PACKAGE_ORDERS,
 } from './seedData';
-import { supabase, isSupabaseConfigured } from './supabase';
+import {
+  supabase,
+  isSupabaseConfigured,
+  uploadImageToSupabase,
+  deleteImageFromSupabase,
+} from './supabase';
+import { getDynamicQRUrl } from '../utils/url';
 
 const USERS_KEY = 'strix_users_v3';
 const QR_KEY = 'strix_qrcodes_v3';
@@ -34,9 +40,17 @@ const PACKAGES_KEY = 'strix_packages_v3';
 const CODES_KEY = 'strix_codes_v3';
 const ORDERS_KEY = 'strix_orders_v3';
 
-function syncToSupabase(promiseLike: any): void {
-  if (promiseLike) {
-    Promise.resolve(promiseLike).catch(() => {});
+async function syncToSupabase(promiseLike: any): Promise<any> {
+  if (!promiseLike) return null;
+  try {
+    const res = await promiseLike;
+    if (res?.error) {
+      console.warn('[Strix Cloud Sync] PostgreSQL warning:', res.error);
+    }
+    return res;
+  } catch (err) {
+    console.error('[Strix Cloud Sync] Network failure:', err);
+    return null;
   }
 }
 
@@ -70,7 +84,156 @@ class DatabaseService {
   }
 
   getUsers(): User[] {
-    return this.getItem<User[]>(USERS_KEY, DEFAULT_USERS);
+    const users = this.getItem<User[]>(USERS_KEY, DEFAULT_USERS);
+    if (!users || users.length === 0) {
+      this.setItem(USERS_KEY, DEFAULT_USERS);
+      return DEFAULT_USERS;
+    }
+    return users;
+  }
+
+  async syncUsersFromSupabase(): Promise<User[]> {
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          const mapped: User[] = data.map((p: any) => ({
+            id: p.id,
+            name: p.name || p.email.split('@')[0],
+            email: p.email,
+            role: (p.role as import('../types').UserRole) || 'user',
+            tier: (p.tier as import('../types').UserTier) || 'free',
+            createdAt: p.created_at,
+            avatarUrl: p.avatar_url || undefined,
+          }));
+          this.setItem(USERS_KEY, mapped);
+          return mapped;
+        }
+      } catch (e) {
+        console.warn('Failed to sync profiles from Supabase:', e);
+      }
+    }
+    return this.getUsers();
+  }
+
+  saveUserProfile(user: User): User {
+    const users = this.getUsers();
+    const index = users.findIndex((u) => u.id === user.id || u.email.toLowerCase() === user.email.toLowerCase());
+    if (index >= 0) {
+      users[index] = { ...users[index], ...user };
+    } else {
+      users.unshift(user);
+    }
+    this.setItem(USERS_KEY, users);
+
+    if (isSupabaseConfigured() && supabase) {
+      syncToSupabase(
+        supabase.from('profiles').upsert({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          tier: user.tier || 'free',
+          avatar_url: user.avatarUrl || null,
+          created_at: user.createdAt,
+          updated_at: new Date().toISOString(),
+        })
+      );
+    }
+    return user;
+  }
+
+  createUser(data: { name: string; email: string; role?: import('../types').UserRole; tier?: import('../types').UserTier }): User {
+    const users = this.getUsers();
+    const existing = users.find((u) => u.email.toLowerCase() === data.email.toLowerCase());
+    if (existing) {
+      existing.name = data.name || existing.name;
+      if (data.role) existing.role = data.role;
+      if (data.tier) existing.tier = data.tier;
+      this.setItem(USERS_KEY, users);
+      if (isSupabaseConfigured() && supabase) {
+        syncToSupabase(
+          supabase.from('profiles').upsert({
+            id: existing.id,
+            email: existing.email,
+            name: existing.name,
+            role: existing.role,
+            tier: existing.tier || 'free',
+            updated_at: new Date().toISOString(),
+          })
+        );
+      }
+      return existing;
+    }
+
+    const newUser: User = {
+      id: `usr_${Date.now()}`,
+      name: data.name,
+      email: data.email,
+      role: data.role || 'user',
+      tier: data.tier || 'free',
+      createdAt: new Date().toISOString(),
+    };
+
+    users.unshift(newUser);
+    this.setItem(USERS_KEY, users);
+
+    if (isSupabaseConfigured() && supabase) {
+      syncToSupabase(
+        supabase.from('profiles').upsert({
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          role: newUser.role,
+          tier: newUser.tier,
+          created_at: newUser.createdAt,
+          updated_at: new Date().toISOString(),
+        })
+      );
+    }
+    return newUser;
+  }
+
+  updateUserRole(userId: string, role: import('../types').UserRole): User | null {
+    const users = this.getUsers();
+    const user = users.find((u) => u.id === userId);
+    if (user) {
+      user.role = role;
+      this.setItem(USERS_KEY, users);
+      const current = this.getCurrentUser();
+      if (current && current.id === userId) {
+        current.role = role;
+        this.setCurrentUser(current);
+      }
+      if (isSupabaseConfigured() && supabase) {
+        syncToSupabase(
+          supabase
+            .from('profiles')
+            .update({ role, updated_at: new Date().toISOString() })
+            .eq('id', userId)
+        );
+      }
+      return user;
+    }
+    return null;
+  }
+
+  deleteUser(userId: string): boolean {
+    let users = this.getUsers();
+    const initialLen = users.length;
+    users = users.filter((u) => u.id !== userId);
+    if (users.length !== initialLen) {
+      this.setItem(USERS_KEY, users);
+      if (isSupabaseConfigured() && supabase) {
+        syncToSupabase(supabase.from('profiles').delete().eq('id', userId));
+      }
+      return true;
+    }
+    return false;
   }
 
   registerUser(name: string, email: string): User {
@@ -81,17 +244,33 @@ class DatabaseService {
       return existing;
     }
 
+    const isAdmin = email.toLowerCase().endsWith('@strixdevs.com');
     const newUser: User = {
       id: `usr_${Date.now()}`,
       name,
       email,
-      role: 'user',
+      role: isAdmin ? 'admin' : 'user',
+      tier: isAdmin ? 'enterprise' : 'free',
       createdAt: new Date().toISOString(),
     };
 
-    users.push(newUser);
+    users.unshift(newUser);
     this.setItem(USERS_KEY, users);
     this.setCurrentUser(newUser);
+
+    if (isSupabaseConfigured() && supabase) {
+      syncToSupabase(
+        supabase.from('profiles').upsert({
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          role: newUser.role,
+          tier: newUser.tier,
+          created_at: newUser.createdAt,
+          updated_at: new Date().toISOString(),
+        })
+      );
+    }
     return newUser;
   }
 
@@ -120,12 +299,28 @@ class DatabaseService {
         current.tier = tier;
         this.setCurrentUser(current);
       }
+      if (isSupabaseConfigured() && supabase) {
+        syncToSupabase(
+          supabase
+            .from('profiles')
+            .update({ tier, updated_at: new Date().toISOString() })
+            .eq('id', userId)
+        );
+      }
       return user;
     }
     const current = this.getCurrentUser();
     if (current) {
       current.tier = tier;
       this.setCurrentUser(current);
+      if (isSupabaseConfigured() && supabase) {
+        syncToSupabase(
+          supabase
+            .from('profiles')
+            .update({ tier, updated_at: new Date().toISOString() })
+            .eq('id', current.id)
+        );
+      }
       return current;
     }
     return null;
@@ -138,6 +333,39 @@ class DatabaseService {
 
   getUserQRs(userId: string): SavedQRCode[] {
     return this.getAllQRs().filter((q) => q.userId === userId);
+  }
+
+  async fetchUserQRs(userId: string): Promise<SavedQRCode[]> {
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('qr_codes')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          const mapped: SavedQRCode[] = data.map((d: any) => ({
+            id: d.id,
+            userId: d.user_id,
+            title: d.title,
+            qrType: d.qr_type,
+            payload: d.payload,
+            design: d.design,
+            downloadCount: d.download_count || 0,
+            createdAt: d.created_at,
+            isDynamic: Boolean(d.is_dynamic),
+            dynamicConfig: d.dynamic_config,
+          }));
+          const allCached = this.getAllQRs().filter((q) => q.userId !== userId);
+          this.setItem(QR_KEY, [...mapped, ...allCached]);
+          return mapped;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch QRs from Supabase:', err);
+      }
+    }
+    return this.getUserQRs(userId);
   }
 
   getQRById(id: string): SavedQRCode | null {
@@ -160,42 +388,141 @@ class DatabaseService {
     };
 
     if (newQR.isDynamic) {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://strixdevs.com';
-      newQR.payload = `${origin}/r/${newQR.id}`;
+      newQR.payload = getDynamicQRUrl(newQR.id);
     }
 
     qrs.unshift(newQR);
     this.setItem(QR_KEY, qrs);
 
     // Sync with production cloud registry and Supabase
-    if (typeof window !== 'undefined') {
-      fetch('/api/qr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newQR),
-      }).catch(() => {});
-    }
+    this.saveQRCodeCloud(newQR).catch((err) => {
+      console.warn('[Strix Cloud QR] Async cloud sync deferred/warning:', err);
+    });
 
     return newQR;
+  }
+
+  async saveQRCodeAsync(data: any): Promise<SavedQRCode> {
+    const qrs = this.getAllQRs();
+    const newQR: SavedQRCode = {
+      id: data.id || `sqr_${Date.now()}`,
+      userId: data.userId,
+      title: data.title,
+      qrType: data.qrType,
+      payload: data.payload,
+      design: data.design,
+      downloadCount: 0,
+      createdAt: new Date().toISOString(),
+      isDynamic: Boolean(data.isDynamic),
+      dynamicConfig: data.dynamicConfig,
+    };
+
+    if (newQR.isDynamic) {
+      newQR.payload = getDynamicQRUrl(newQR.id);
+    }
+
+    qrs.unshift(newQR);
+    this.setItem(QR_KEY, qrs);
+
+    await this.saveQRCodeCloud(newQR);
+    return newQR;
+  }
+
+  async saveQRCodeCloud(newQR: SavedQRCode): Promise<void> {
+    const promises: Promise<any>[] = [];
+
+    // 1. Sync to Next.js API / Registry
+    if (typeof window !== 'undefined') {
+      promises.push(
+        fetch('/api/qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newQR),
+        }).then(async (res) => {
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Failed to register QR: HTTP ${res.status}`);
+          }
+        })
+      );
+    }
+
+    // 2. Direct Supabase PostgreSQL upsert if configured
+    if (isSupabaseConfigured() && supabase) {
+      promises.push(
+        Promise.resolve(
+          supabase.from('qr_codes').upsert(
+            {
+              id: newQR.id,
+              user_id: newQR.userId || null,
+              title: newQR.title,
+              qr_type: newQR.qrType,
+              payload: newQR.payload,
+              design: newQR.design,
+              is_dynamic: newQR.isDynamic,
+              dynamic_config: newQR.dynamicConfig,
+              download_count: newQR.downloadCount || 0,
+              created_at: newQR.createdAt,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'id' }
+          )
+        ).then(({ error }: any) => {
+          if (error) {
+            console.warn('[Strix DB] Supabase qr_codes upsert notice:', error);
+          }
+        })
+      );
+    }
+
+    if (promises.length > 0) {
+      await Promise.all(promises);
+    }
   }
 
   updateQRCode(id: string, updates: Partial<SavedQRCode>): void {
     const qrs = this.getAllQRs().map((q) => (q.id === id ? { ...q, ...updates } : q));
     this.setItem(QR_KEY, qrs);
 
-    // Sync updated QR code with cloud registry & Supabase
     const updated = qrs.find((q) => q.id === id);
-    if (updated && typeof window !== 'undefined') {
-      fetch('/api/qr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated),
-      }).catch(() => {});
+    if (updated) {
+      this.saveQRCodeCloud(updated).catch((err) => {
+        console.warn('[Strix Cloud QR] Update deferred/warning:', err);
+      });
     }
+  }
+
+  async updateQRCodeAsync(id: string, updates: Partial<SavedQRCode>): Promise<SavedQRCode | null> {
+    const qrs = this.getAllQRs().map((q) => (q.id === id ? { ...q, ...updates } : q));
+    this.setItem(QR_KEY, qrs);
+
+    const updated = qrs.find((q) => q.id === id);
+    if (updated) {
+      await this.saveQRCodeCloud(updated);
+      return updated;
+    }
+    return null;
   }
 
   deleteQRCode(id: string): void {
     this.setItem(QR_KEY, this.getAllQRs().filter((q) => q.id !== id));
+    if (isSupabaseConfigured() && supabase) {
+      supabase.from('qr_codes').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Failed to delete QR from Supabase:', error);
+      });
+    }
+  }
+
+  async deleteQRCodeAsync(id: string): Promise<boolean> {
+    this.setItem(QR_KEY, this.getAllQRs().filter((q) => q.id !== id));
+    if (isSupabaseConfigured() && supabase) {
+      const { error } = await supabase.from('qr_codes').delete().eq('id', id);
+      if (error) {
+        console.error('Failed to delete QR from Supabase:', error);
+        return false;
+      }
+    }
+    return true;
   }
 
   // --- Dynamic Ephemeral Resolver ---
@@ -288,16 +615,121 @@ class DatabaseService {
     return this.getItem<SavedLogo[]>(LOGOS_KEY, []).filter((l) => l.userId === userId);
   }
 
-  saveLogo(userId: string, name: string, url: string): SavedLogo {
+  async fetchUserLogos(userId: string): Promise<SavedLogo[]> {
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('user_logos')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          const mapped: SavedLogo[] = data.map((l: any) => ({
+            id: l.id,
+            userId: l.user_id,
+            name: l.name,
+            url: l.url,
+            storagePath: l.storage_path,
+            createdAt: l.created_at,
+          }));
+          const allCached = this.getItem<SavedLogo[]>(LOGOS_KEY, []).filter((l) => l.userId !== userId);
+          this.setItem(LOGOS_KEY, [...mapped, ...allCached]);
+          return mapped;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch logos from Supabase:', err);
+      }
+    }
+    return this.getUserLogos(userId);
+  }
+
+  saveLogo(userId: string, name: string, url: string, storagePath?: string): SavedLogo {
     const logos = this.getItem<SavedLogo[]>(LOGOS_KEY, []);
-    const newLogo: SavedLogo = { id: `logo_${Date.now()}`, userId, name, url, createdAt: new Date().toISOString() };
+    const newLogo: SavedLogo = {
+      id: `logo_${Date.now()}`,
+      userId,
+      name,
+      url,
+      storagePath,
+      createdAt: new Date().toISOString(),
+    };
     logos.unshift(newLogo);
     this.setItem(LOGOS_KEY, logos);
+
+    if (isSupabaseConfigured() && supabase) {
+      syncToSupabase(
+        supabase.from('user_logos').upsert({
+          id: newLogo.id,
+          user_id: newLogo.userId,
+          name: newLogo.name,
+          url: newLogo.url,
+          storage_path: newLogo.storagePath || null,
+          created_at: newLogo.createdAt,
+        })
+      );
+    }
+
     return newLogo;
   }
 
+  async uploadUserLogo(userId: string, file: File): Promise<SavedLogo> {
+    let logoUrl: string = '';
+    let storagePath: string | undefined = undefined;
+
+    // 1. Try uploading to Supabase Storage ('logos' bucket)
+    if (isSupabaseConfigured() && supabase) {
+      const uploadRes = await uploadImageToSupabase(userId, file);
+      if (uploadRes.url) {
+        logoUrl = uploadRes.url;
+        storagePath = uploadRes.storagePath || undefined;
+      }
+    }
+
+    // 2. Fallback to base64 data-url if storage was unavailable
+    if (!logoUrl) {
+      logoUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    return this.saveLogo(userId, file.name, logoUrl, storagePath);
+  }
+
   deleteLogo(id: string): void {
-    this.setItem(LOGOS_KEY, this.getItem<SavedLogo[]>(LOGOS_KEY, []).filter((l) => l.id !== id));
+    const logos = this.getItem<SavedLogo[]>(LOGOS_KEY, []);
+    const target = logos.find((l) => l.id === id);
+    this.setItem(LOGOS_KEY, logos.filter((l) => l.id !== id));
+
+    if (target?.storagePath) {
+      deleteImageFromSupabase(target.storagePath).catch(() => {});
+    }
+    if (isSupabaseConfigured() && supabase) {
+      supabase.from('user_logos').delete().eq('id', id).then(({ error }) => {
+        if (error) console.warn('[Strix DB] Supabase logo delete warning:', error);
+      });
+    }
+  }
+
+  async deleteLogoAsync(id: string): Promise<boolean> {
+    const logos = this.getItem<SavedLogo[]>(LOGOS_KEY, []);
+    const target = logos.find((l) => l.id === id);
+    this.setItem(LOGOS_KEY, logos.filter((l) => l.id !== id));
+
+    if (target?.storagePath) {
+      await deleteImageFromSupabase(target.storagePath);
+    }
+    if (isSupabaseConfigured() && supabase) {
+      const { error } = await supabase.from('user_logos').delete().eq('id', id);
+      if (error) {
+        console.error('Failed to delete logo from Supabase:', error);
+        return false;
+      }
+    }
+    return true;
   }
 
   // --- AdSense & Analytics ---

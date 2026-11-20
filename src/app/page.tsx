@@ -13,8 +13,7 @@ import { FAQSection } from '../components/marketing/FAQSection';
 import { ContactSection } from '../components/marketing/ContactSection';
 import { Footer } from '../components/layout/Footer';
 import { AdBanner } from '../components/monetization/AdBanner';
-import { UserDashboard } from '../components/dashboard/UserDashboard';
-import { AdminDashboard } from '../components/admin/AdminDashboard';
+import { UnifiedDashboard } from '../components/dashboard/UnifiedDashboard';
 import { AuthModal } from '../components/AuthModal';
 import { PricingModal } from '../components/pricing/PricingModal';
 import { QRResolverView } from '../components/resolver/QRResolverView';
@@ -211,7 +210,7 @@ export default function HomePage() {
         onNavigateToSection={scrollToSection}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16">
+      <main className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 ${activeView === 'dashboard' || activeView === 'admin' ? 'max-w-[1600px]' : 'max-w-7xl'}`}>
         {activeView === 'generator' && (
           <>
             <HeroSection />
@@ -299,20 +298,17 @@ export default function HomePage() {
           </div>
         )}
 
-        {activeView === 'dashboard' && (
-          <UserDashboard
+        {(activeView === 'dashboard' || activeView === 'admin') && (
+          <UnifiedDashboard
             onLoadQRToGenerator={handleLoadQRToGenerator}
             onNavigateToGenerator={() => setActiveView('generator')}
             onOpenTestScan={(codeId) => setResolverCodeId(codeId)}
+            onOpenPricing={() => setIsPricingModalOpen(true)}
           />
-        )}
-
-        {activeView === 'admin' && (
-          <AdminDashboard />
         )}
       </main>
 
-      <Footer />
+      {activeView !== 'dashboard' && activeView !== 'admin' && <Footer />}
 
       <AuthModal
         isOpen={isAuthModalOpen}

@@ -1,6 +1,39 @@
 import type { User, SavedQRCode, AdSlotConfig, SponsorshipLead, AnalyticsConfig, PricingPlan, LicenseCode, PackageOrder } from '../types';
 
-export const DEFAULT_USERS: User[] = [];
+export const DEFAULT_USERS: User[] = [
+  {
+    id: 'usr_strix_admin',
+    name: 'StrixDevs Lead Admin',
+    email: 'admin@strixdevs.com',
+    role: 'admin',
+    tier: 'enterprise',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'usr_sarah_enterprise',
+    name: 'Sarah Connor',
+    email: 'sarah.m@enterprise.io',
+    role: 'user',
+    tier: 'enterprise',
+    createdAt: '2026-02-14T10:30:00.000Z',
+  },
+  {
+    id: 'usr_david_pro',
+    name: 'David Kim',
+    email: 'david@bistroqr.com',
+    role: 'user',
+    tier: 'pro',
+    createdAt: '2026-03-01T15:45:00.000Z',
+  },
+  {
+    id: 'usr_alex_starter',
+    name: 'Alex Vance',
+    email: 'alex.creator@gmail.com',
+    role: 'user',
+    tier: 'free',
+    createdAt: '2026-03-10T08:20:00.000Z',
+  },
+];
 
 export const DEFAULT_PACKAGES: PricingPlan[] = [
   {

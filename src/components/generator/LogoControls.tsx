@@ -1,9 +1,11 @@
 import React from 'react';
-import { Ban, Wifi, MapPin, ShieldCheck, Star } from 'lucide-react';
+import { Ban, Wifi, MapPin } from 'lucide-react';
 import { playTactileClick } from '../../utils/audioFeedback';
 import { generatePresetLogoSvg } from '../../utils/presetBadges';
 import { ColorField } from '../ui/ColorField';
 import type { QRDesignOptions, PresetLogoId } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { db } from '../../services/db';
 
 interface LogoControlsProps {
   design: QRDesignOptions;
@@ -50,10 +52,31 @@ const PRESET_BADGES: PresetBadgeOption[] = [
 ];
 
 export const LogoControls: React.FC<LogoControlsProps> = ({ design, setDesign }) => {
-  const handleCustomLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { user } = useAuth();
+
+  const handleCustomLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       playTactileClick();
+
+      // If user is authenticated, upload directly to Supabase Cloud Storage
+      if (user) {
+        try {
+          const saved = await db.uploadUserLogo(user.id, file);
+          if (saved?.url) {
+            setDesign((prev) => ({
+              ...prev,
+              presetLogoId: null,
+              logoUrl: saved.url,
+            }));
+            return;
+          }
+        } catch {
+          // fallback
+        }
+      }
+
+      // Guest / offline fallback
       const reader = new FileReader();
       reader.onload = () => {
         setDesign((prev) => ({

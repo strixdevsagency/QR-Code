@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, sanitizeText, validateRedirectUrl } from '@/utils/security';
 import { registerQRCode } from '@/services/qrRegistry';
+import { getDynamicQRUrl } from '@/utils/url';
 
 // Server-side in-memory QR store (fallback)
 const qrcodes: any[] = [];

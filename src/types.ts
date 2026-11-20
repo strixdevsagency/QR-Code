@@ -106,6 +106,7 @@ export interface User {
   role: UserRole;
   tier?: UserTier;
   createdAt: string;
+  avatarUrl?: string;
 }
 
 /* Pricing & Subscriptions */
@@ -190,6 +191,7 @@ export interface SavedLogo {
   userId: string;
   name: string;
   url: string;
+  storagePath?: string;
   createdAt: string;
 }
 

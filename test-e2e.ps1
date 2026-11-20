@@ -122,16 +122,16 @@ try {
 
     # Test 7: GET / (Homepage with initial compilation)
     Write-Host "[7/8] Testing Homepage (GET / with first-load compilation)..." -NoNewline
-    $home = Invoke-WebRequest -Uri 'http://127.0.0.1:3005/' -UseBasicParsing -TimeoutSec 45
-    if ($home.StatusCode -eq 200 -and $home.Content.Length -gt 1000) {
-        Write-Host " PASS (Status 200, $($home.Content.Length) bytes)" -ForegroundColor Green
+    $homePage = Invoke-WebRequest -Uri 'http://127.0.0.1:3005/' -UseBasicParsing -TimeoutSec 45
+    if ($homePage.StatusCode -eq 200 -and $homePage.Content.Length -gt 1000) {
+        Write-Host " PASS (Status 200, $($homePage.Content.Length) bytes)" -ForegroundColor Green
     } else {
-        Write-Host " FAIL (Status $($home.StatusCode))" -ForegroundColor Red
+        Write-Host " FAIL (Status $($homePage.StatusCode))" -ForegroundColor Red
         $allPassed = $false
     }
 
     # Test 8: GET /r/e2e_qr_test_01 (Resolver UI Page compilation)
-    Write-Host "[8/8] Testing Dynamic QR Page (GET /r/e2e_qr_test_01)..." -NoNewline
+    Write-Host "[8/10] Testing Dynamic QR Page (GET /r/e2e_qr_test_01)..." -NoNewline
     $rPage = Invoke-WebRequest -Uri 'http://127.0.0.1:3005/r/e2e_qr_test_01' -UseBasicParsing -TimeoutSec 45
     if ($rPage.StatusCode -eq 200) {
         Write-Host " PASS (Status 200)" -ForegroundColor Green
@@ -140,9 +140,40 @@ try {
         $allPassed = $false
     }
 
+    # Test 9: POST /api/auth/verify-role (Server Role Verification)
+    Write-Host "[9/10] Testing Auth Verify-Role API (POST /api/auth/verify-role)..." -NoNewline
+    $verifyPayload = @{
+        email = "strixdevs1.0@gmail.com"
+        id = "bd9ad143-98ab-4fe0-9151-409154fe1e95"
+    } | ConvertTo-Json
+
+    $verifiedUser = Invoke-RestMethod -Uri 'http://127.0.0.1:3005/api/auth/verify-role' -Method Post -Body $verifyPayload -ContentType 'application/json' -TimeoutSec 10
+    if ($verifiedUser.user -and $verifiedUser.user.email -eq "strixdevs1.0@gmail.com") {
+        Write-Host " PASS (Role: $($verifiedUser.user.role), Tier: $($verifiedUser.user.tier))" -ForegroundColor Green
+    } else {
+        Write-Host " FAIL" -ForegroundColor Red
+        $allPassed = $false
+    }
+
+    # Test 10: POST /api/webhooks/payment (Payment Webhook Route)
+    Write-Host "[10/10] Testing Payment Webhook (POST /api/webhooks/payment)..." -NoNewline
+    $webhookPayload = @{
+        type = "checkout.session.completed"
+        email = "test.subscriber@strixdevs.com"
+        tier = "pro"
+    } | ConvertTo-Json
+
+    $webhookRes = Invoke-RestMethod -Uri 'http://127.0.0.1:3005/api/webhooks/payment' -Method Post -Body $webhookPayload -ContentType 'application/json' -TimeoutSec 10
+    if ($webhookRes.received -eq $true) {
+        Write-Host " PASS (Received: $($webhookRes.received))" -ForegroundColor Green
+    } else {
+        Write-Host " FAIL" -ForegroundColor Red
+        $allPassed = $false
+    }
+
     Write-Host ""
     if ($allPassed) {
-        Write-Host "=== ALL 8 END-TO-END TESTS PASSED SUCCESSFULLY! ===" -ForegroundColor Green
+        Write-Host "=== ALL 10 END-TO-END TESTS PASSED SUCCESSFULLY! ===" -ForegroundColor Green
     } else {
         Write-Host "=== SOME TESTS FAILED ===" -ForegroundColor Red
     }

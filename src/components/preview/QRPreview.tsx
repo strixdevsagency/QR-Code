@@ -7,6 +7,7 @@ import { DownloadDialog } from './DownloadDialog';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../services/db';
+import { getDynamicQRUrl } from '../../utils/url';
 
 interface QRPreviewProps {
   payload: string;
@@ -114,8 +115,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   const effectivePayload = React.useMemo(() => {
     if (expiryMode === 'lifetime') return payload;
     if (dynamicCodeId) {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://strixdevs.com';
-      return `${origin}/r/${dynamicCodeId}`;
+      return getDynamicQRUrl(dynamicCodeId);
     }
     return payload;
   }, [expiryMode, dynamicCodeId, payload]);

@@ -4,7 +4,6 @@ import {
   Zap,
   Sparkles,
   Shield,
-  ArrowRight,
   ArrowLeft,
   X,
   Send,

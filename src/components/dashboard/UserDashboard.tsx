@@ -6,10 +6,8 @@ import {
   Plus,
   ShieldCheck,
   Download,
-  Flame,
   Activity,
   Sparkles,
-  Lock,
   Layers,
   Database,
   Key,
@@ -45,10 +43,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   const [redeemError, setRedeemError] = useState<string | null>(null);
   const [redeemSuccess, setRedeemSuccess] = useState<{ isTeam?: boolean; remaining?: number; tier?: string } | null>(null);
 
-  const refreshData = () => {
+  const refreshData = async () => {
     if (user) {
       setQrs(db.getUserQRs(user.id));
       setLogos(db.getUserLogos(user.id));
+
+      try {
+        const [cloudQRs, cloudLogos] = await Promise.all([
+          db.fetchUserQRs(user.id),
+          db.fetchUserLogos(user.id),
+        ]);
+        setQrs(cloudQRs);
+        setLogos(cloudLogos);
+      } catch (err) {
+        console.warn('Cloud sync error:', err);
+      }
     }
   };
 
@@ -94,17 +103,17 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     refreshData();
   };
 
-  const handleUploadLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && user) {
       playTactileClick();
-      const reader = new FileReader();
-      reader.onload = () => {
-        db.saveLogo(user.id, file.name, reader.result as string);
-        refreshData();
+      try {
+        await db.uploadUserLogo(user.id, file);
+        await refreshData();
         playVictoryFanfare();
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Logo upload error:', err);
+      }
     }
   };
 
@@ -162,13 +171,13 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
         <div className="space-y-2 relative z-10">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-mono text-[11px] font-semibold">
-              <Lock className="w-3 h-3" />
-              Client-Encrypted Vault
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 font-mono text-[11px] font-semibold">
+              <ShieldCheck className="w-3 h-3" />
+              {user?.role === 'admin' ? 'Administrator Control Active' : 'Verified Member Vault'}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px] font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              100% Zero-Tracking Storage
+              Cloud Synchronized · PostgreSQL Active
             </span>
           </div>
 
@@ -177,7 +186,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 max-w-xl leading-relaxed">
             Permanent vector matrix registry & dynamic scan authorization records for{' '}
-            <strong className="text-zinc-200">{user?.email}</strong>. Data persists client-side in your secure browser sandbox.
+            <strong className="text-zinc-200">{user?.email}</strong>. Connected to Supabase Cloud Storage & Database.
           </p>
         </div>
 

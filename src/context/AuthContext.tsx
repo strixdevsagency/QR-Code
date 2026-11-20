@@ -11,6 +11,8 @@ import {
   signInWithOAuth,
   signOutUser,
   getActiveSession,
+  getFreshUser,
+  refreshSession,
 } from '../services/supabase';
 
 interface AuthContextType {
@@ -23,6 +25,8 @@ interface AuthContextType {
   loginWithOAuth: (provider?: 'google') => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUserTier: (tier: UserTier) => void;
+  updateUserRole: (userId: string, role: UserRole) => Promise<void>;
+  refreshUser: () => Promise<void>;
   activateLicenseKey: (key: string) => { success: boolean; tier?: UserTier; error?: string; isTeamCode?: boolean; remainingUses?: number };
 }
 
@@ -32,39 +36,146 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const isCloud = isSupabaseConfigured();
 
-  // Map Supabase User to App User format
-  const mapSupabaseUser = (sbUser: any): User => {
-    const meta = sbUser.user_metadata || {};
-    const email = sbUser.email || '';
-    const isAdmin = meta.role === 'admin' || email.toLowerCase().endsWith('@strixdevs.com');
-    const tier: UserTier = isAdmin ? 'enterprise' : (meta.tier || 'free');
+  // Map and sync Supabase User to App User format with public.profiles DB check
+  const resolveUserProfile = async (sbUser: any): Promise<User> => {
+    const userMeta = sbUser.user_metadata || {};
+    const appMeta = sbUser.app_metadata || {};
+    const email: string = (sbUser.email || '').toLowerCase().trim();
 
-    return {
+    // 1. Initial base defaults
+    let role: UserRole = 'user';
+    let tier: UserTier = 'free';
+    let name: string = userMeta.full_name || userMeta.name || email.split('@')[0] || 'Strix User';
+    let avatarUrl: string | undefined = userMeta.avatar_url || userMeta.picture || undefined;
+
+    // Check if Supabase JWT carries verified admin claim
+    if (appMeta.role === 'admin' || userMeta.role === 'admin' || appMeta.claims_admin === true) {
+      role = 'admin';
+      tier = 'enterprise';
+    }
+
+    // 2. Query Supabase public.profiles table by BOTH ID and EMAIL
+    if (supabase && email) {
+      try {
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .or(`id.eq.${sbUser.id},email.ilike.${email}`);
+
+        if (!error && profiles && profiles.length > 0) {
+          // Prefer exact id match, otherwise email match
+          const profile = profiles.find((p: any) => p.id === sbUser.id) || profiles[0];
+
+          // Priority 1: Respect the role and tier explicitly set in public.profiles!
+          if (profile.role) {
+            role = profile.role as UserRole;
+          }
+          if (profile.tier) {
+            tier = profile.tier as UserTier;
+          }
+          if (profile.name) {
+            name = profile.name;
+          }
+          if (profile.avatar_url) {
+            avatarUrl = profile.avatar_url;
+          }
+
+          // If the profile in DB has a legacy/different id, update its id to sbUser.id so it is permanently linked
+          if (profile.id !== sbUser.id) {
+            await supabase
+              .from('profiles')
+              .update({ id: sbUser.id, updated_at: new Date().toISOString() })
+              .eq('email', email);
+          }
+        } else {
+          // If no row exists yet in public.profiles, create it
+          await supabase.from('profiles').upsert({
+            id: sbUser.id,
+            email,
+            name,
+            role,
+            tier,
+            avatar_url: avatarUrl || null,
+            created_at: sbUser.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      } catch (err) {
+        console.warn('Could not query public.profiles:', err);
+      }
+    }
+
+    const appUser: User = {
       id: sbUser.id,
-      name: meta.name || email.split('@')[0] || 'Strix User',
+      name,
       email,
-      role: isAdmin ? 'admin' : 'user',
+      role,
       tier,
+      avatarUrl,
       createdAt: sbUser.created_at || new Date().toISOString(),
     };
+
+    // Store in local DB cache for fast hydration
+    db.saveUserProfile(appUser);
+    return appUser;
   };
 
   useEffect(() => {
-    // 1. If Supabase is configured, listen to real auth changes
-    if (isCloud && supabase) {
-      getActiveSession().then((session) => {
+    // Re-verify session and DB profile
+    const verifyAndSyncUser = async () => {
+      if (isCloud && supabase) {
+        const session = await getActiveSession();
         if (session?.user) {
-          const appUser = mapSupabaseUser(session.user);
+          // Also call getFreshUser() to pull fresh server-side auth metadata
+          const freshUser = await getFreshUser();
+          const targetSbUser = freshUser || session.user;
+          const appUser = await resolveUserProfile(targetSbUser);
           setUser(appUser);
           db.setCurrentUser(appUser);
-        } else {
-          setUser(db.getCurrentUser());
+          return;
         }
-      });
+      }
 
-      const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      // If a local user session exists, check if public.profiles has an update for their email
+      const localUser = db.getCurrentUser();
+      if (localUser && isCloud && supabase && localUser.email) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .or(`id.eq.${localUser.id},email.ilike.${localUser.email.toLowerCase().trim()}`)
+            .maybeSingle();
+
+          if (profile) {
+            const updated: User = {
+              ...localUser,
+              name: profile.name || localUser.name,
+              role: (profile.role as UserRole) || localUser.role,
+              tier: (profile.tier as UserTier) || localUser.tier,
+              avatarUrl: profile.avatar_url || localUser.avatarUrl,
+            };
+            setUser(updated);
+            db.setCurrentUser(updated);
+            db.saveUserProfile(updated);
+            return;
+          }
+        } catch {
+          // fallback to cached
+        }
+      }
+
+      setUser(db.getCurrentUser());
+    };
+
+    verifyAndSyncUser();
+
+    // 1. If Supabase is configured, listen to real auth changes
+    if (isCloud && supabase) {
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
-          const appUser = mapSupabaseUser(session.user);
+          const freshUser = await getFreshUser();
+          const targetSbUser = freshUser || session.user;
+          const appUser = await resolveUserProfile(targetSbUser);
           setUser(appUser);
           db.setCurrentUser(appUser);
         } else {
@@ -73,8 +184,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
+      // Window focus listener: When switching back from Supabase dashboard to this tab, auto-refresh!
+      const handleWindowFocus = () => {
+        verifyAndSyncUser();
+      };
+      window.addEventListener('focus', handleWindowFocus);
+
+      // Realtime listener on public.profiles: Instant live sync when database is edited!
+      const profileChannel = supabase
+        .channel('public:profiles')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'profiles' },
+          async (payload: any) => {
+            const changed = payload.new;
+            if (changed && changed.email) {
+              const current = db.getCurrentUser();
+              if (current && (changed.id === current.id || changed.email.toLowerCase() === current.email.toLowerCase())) {
+                const updatedUser: User = {
+                  ...current,
+                  role: (changed.role as UserRole) || current.role,
+                  tier: (changed.tier as UserTier) || current.tier,
+                  name: changed.name || current.name,
+                };
+                setUser(updatedUser);
+                db.setCurrentUser(updatedUser);
+                db.saveUserProfile(updatedUser);
+              }
+            }
+          }
+        )
+        .subscribe();
+
       return () => {
         authListener.subscription.unsubscribe();
+        window.removeEventListener('focus', handleWindowFocus);
+        if (supabase) {
+          supabase.removeChannel(profileChannel);
+        }
       };
     } else {
       // 2. Local Storage Mock Mode
@@ -98,7 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: error.message };
       }
       if (sbUser) {
-        const appUser = mapSupabaseUser(sbUser);
+        const appUser = await resolveUserProfile(sbUser);
         setUser(appUser);
         return { success: true };
       }
@@ -127,7 +274,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: error.message };
       }
       if (sbUser) {
-        const appUser = mapSupabaseUser(sbUser);
+        const appUser = await resolveUserProfile(sbUser);
         setUser(appUser);
         return { success: true };
       }
@@ -169,6 +316,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updated);
       db.updateUserTier(user.id, tier);
     }
+  };
+
+  const updateUserRole = async (userId: string, role: UserRole) => {
+    db.updateUserRole(userId, role);
+    if (user && user.id === userId) {
+      setUser({ ...user, role });
+    }
+  };
+
+  const refreshUser = async () => {
+    if (isCloud && supabase) {
+      // Force refresh auth token
+      await refreshSession();
+      const freshUser = await getFreshUser();
+      if (freshUser) {
+        const appUser = await resolveUserProfile(freshUser);
+        setUser(appUser);
+        db.setCurrentUser(appUser);
+        return;
+      }
+      const session = await getActiveSession();
+      if (session?.user) {
+        const appUser = await resolveUserProfile(session.user);
+        setUser(appUser);
+        db.setCurrentUser(appUser);
+        return;
+      }
+    }
+
+    // Direct check of public.profiles for the active user's email
+    const local = db.getCurrentUser();
+    if (local && isCloud && supabase && local.email) {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .or(`id.eq.${local.id},email.ilike.${local.email.toLowerCase().trim()}`)
+          .maybeSingle();
+
+        if (profile && profile.role) {
+          const updated: User = {
+            ...local,
+            role: profile.role as UserRole,
+            tier: (profile.tier as UserTier) || local.tier,
+          };
+          setUser(updated);
+          db.setCurrentUser(updated);
+          db.saveUserProfile(updated);
+          return;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    setUser(db.getCurrentUser());
   };
 
   /**
@@ -219,6 +422,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithOAuth,
         logout,
         updateUserTier,
+        updateUserRole,
+        refreshUser,
         activateLicenseKey,
       }}
     >

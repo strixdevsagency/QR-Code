@@ -13,6 +13,8 @@ interface ContentInputsProps {
   setWhatsappData: React.Dispatch<React.SetStateAction<WhatsappData>>;
   textValue: string;
   setTextValue: (val: string) => void;
+  smsData: { phone: string; message: string };
+  setSmsData: React.Dispatch<React.SetStateAction<{ phone: string; message: string }>>;
   emailData: { email: string; subject: string; body: string };
   setEmailData: React.Dispatch<React.SetStateAction<{ email: string; subject: string; body: string }>>;
   cryptoData: CryptoData;
@@ -31,6 +33,8 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
   setWhatsappData,
   textValue,
   setTextValue,
+  smsData,
+  setSmsData,
   emailData,
   setEmailData,
   cryptoData,
@@ -41,19 +45,20 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
       {/* 1. URL */}
       {payloadType === 'url' && (
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
-            Website URL Destination
+          <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+            Destination Website URL
           </label>
           <div className="relative">
             <input
               type="url"
               value={urlValue}
               onChange={(e) => setUrlValue(e.target.value)}
-              placeholder="https://strixdevs.com"
-              className="w-full pl-3.5 pr-20 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
+              placeholder="https://example.com"
+              className="w-full pl-3.5 pr-28 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
             />
-            <span className="absolute right-3 top-2.5 text-[11px] text-emerald-400 font-mono">
-              HTTPS Direct
+            <span className="absolute right-3 top-2.5 text-[11px] text-emerald-400 font-mono flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Direct URL
             </span>
           </div>
         </div>
@@ -64,34 +69,34 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
         <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Network SSID (Name)</label>
+              <label className="block text-xs font-medium text-zinc-300 mb-1.5">Network Name (SSID)</label>
               <input
                 type="text"
                 value={wifiData.ssid}
                 onChange={(e) => setWifiData({ ...wifiData, ssid: e.target.value })}
-                placeholder="Cafe-Guest"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
+                placeholder="Office-Guest"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Wi-Fi Password</label>
+              <label className="block text-xs font-medium text-zinc-300 mb-1.5">Wi-Fi Password</label>
               <input
                 type="text"
                 value={wifiData.password}
                 onChange={(e) => setWifiData({ ...wifiData, password: e.target.value })}
                 placeholder="Passphrase"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
               />
             </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-slate-400">
+          <div className="flex items-center gap-4 text-xs text-zinc-400">
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input
                 type="radio"
                 name="enc"
                 checked={wifiData.encryption === 'WPA'}
                 onChange={() => setWifiData({ ...wifiData, encryption: 'WPA' })}
-                className="text-blue-600 cursor-pointer"
+                className="text-white cursor-pointer accent-zinc-200"
               />
               <span>WPA/WPA2/WPA3</span>
             </label>
@@ -101,7 +106,7 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
                 name="enc"
                 checked={wifiData.encryption === 'nopass'}
                 onChange={() => setWifiData({ ...wifiData, encryption: 'nopass' })}
-                className="text-blue-600 cursor-pointer"
+                className="text-white cursor-pointer accent-zinc-200"
               />
               <span>Open Network</span>
             </label>
@@ -118,14 +123,14 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
               placeholder="First Name"
               value={vcardData.firstName}
               onChange={(e) => setVcardData({ ...vcardData, firstName: e.target.value })}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
             />
             <input
               type="text"
               placeholder="Last Name"
               value={vcardData.lastName}
               onChange={(e) => setVcardData({ ...vcardData, lastName: e.target.value })}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -134,14 +139,14 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
               placeholder="Phone (+1 312 555-0100)"
               value={vcardData.phone}
               onChange={(e) => setVcardData({ ...vcardData, phone: e.target.value })}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
             />
             <input
               type="email"
-              placeholder="Email (alex@strixdevs.com)"
+              placeholder="Email (contact@example.com)"
               value={vcardData.email}
               onChange={(e) => setVcardData({ ...vcardData, email: e.target.value })}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -150,14 +155,14 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
               placeholder="Company"
               value={vcardData.company}
               onChange={(e) => setVcardData({ ...vcardData, company: e.target.value })}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
             />
             <input
               type="url"
-              placeholder="Website"
+              placeholder="Website (https://...)"
               value={vcardData.website}
               onChange={(e) => setVcardData({ ...vcardData, website: e.target.value })}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
             />
           </div>
         </div>
@@ -168,17 +173,37 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
         <div className="space-y-3">
           <input
             type="tel"
-            placeholder="WhatsApp Phone (13125550144)"
+            placeholder="WhatsApp Phone Number with Country Code (e.g. 13125550144)"
             value={whatsappData.phone}
             onChange={(e) => setWhatsappData({ ...whatsappData, phone: e.target.value })}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
           />
           <textarea
             rows={2}
             placeholder="Pre-filled greeting message"
             value={whatsappData.message}
             onChange={(e) => setWhatsappData({ ...whatsappData, message: e.target.value })}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
+          />
+        </div>
+      )}
+
+      {/* 5. SMS Message */}
+      {payloadType === 'sms' && (
+        <div className="space-y-3">
+          <input
+            type="tel"
+            placeholder="Recipient Mobile Number (e.g. +1 312 555-0100)"
+            value={smsData.phone}
+            onChange={(e) => setSmsData({ ...smsData, phone: e.target.value })}
+            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
+          />
+          <textarea
+            rows={2}
+            placeholder="Pre-filled SMS text message"
+            value={smsData.message}
+            onChange={(e) => setSmsData({ ...smsData, message: e.target.value })}
+            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
           />
         </div>
       )}
@@ -188,17 +213,17 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
         <div className="space-y-3">
           <input
             type="email"
-            placeholder="Recipient (contact@strixdevs.com)"
+            placeholder="Recipient Email (contact@example.com)"
             value={emailData.email}
             onChange={(e) => setEmailData({ ...emailData, email: e.target.value })}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
           />
           <input
             type="text"
-            placeholder="Subject"
+            placeholder="Subject Line"
             value={emailData.subject}
             onChange={(e) => setEmailData({ ...emailData, subject: e.target.value })}
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
           />
         </div>
       )}
@@ -209,18 +234,18 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
           <select
             value={cryptoData.currency}
             onChange={(e) => setCryptoData({ ...cryptoData, currency: e.target.value as any })}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs"
+            className="px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition cursor-pointer"
           >
-            <option value="BTC">Bitcoin (BTC)</option>
-            <option value="ETH">Ethereum (ETH)</option>
-            <option value="SOL">Solana (SOL)</option>
+            <option value="BTC" className="bg-zinc-900 text-white">Bitcoin (BTC)</option>
+            <option value="ETH" className="bg-zinc-900 text-white">Ethereum (ETH)</option>
+            <option value="SOL" className="bg-zinc-900 text-white">Solana (SOL)</option>
           </select>
           <input
             type="text"
-            placeholder="Wallet Address"
+            placeholder="Wallet Public Address"
             value={cryptoData.address}
             onChange={(e) => setCryptoData({ ...cryptoData, address: e.target.value })}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs font-mono"
+            className="px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs font-mono focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
           />
         </div>
       )}
@@ -229,10 +254,10 @@ export const ContentInputs: React.FC<ContentInputsProps> = ({
       {payloadType === 'text' && (
         <textarea
           rows={3}
-          placeholder="Enter plain text, code, serial number, or note..."
+          placeholder="Enter plain text, verification token, serial code, or note..."
           value={textValue}
           onChange={(e) => setTextValue(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs sm:text-sm"
+          className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition placeholder:text-zinc-500"
         />
       )}
     </div>

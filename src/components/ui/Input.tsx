@@ -19,18 +19,18 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="w-full space-y-1.5 text-left">
       {label && (
-        <label htmlFor={inputId} className="block text-xs font-semibold text-slate-300">
+        <label htmlFor={inputId} className="block text-xs font-semibold text-zinc-300">
           {label}
         </label>
       )}
       <input
         id={inputId}
-        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder:text-slate-500 ${
-          error ? 'border-rose-500' : ''
+        className={`w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.1] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-[#38bdf8]/70 focus:ring-1 focus:ring-[#38bdf8]/30 transition placeholder:text-zinc-500 ${
+          error ? 'border-rose-500/80 focus:border-rose-500' : ''
         } ${className}`}
         {...props}
       />
-      {hint && !error && <p className="text-[11px] text-slate-400">{hint}</p>}
+      {hint && !error && <p className="text-[11px] text-zinc-400">{hint}</p>}
       {error && <p className="text-[11px] text-rose-400 font-medium">{error}</p>}
     </div>
   );
@@ -55,18 +55,18 @@ export const Textarea: React.FC<TextareaProps> = ({
   return (
     <div className="w-full space-y-1.5 text-left">
       {label && (
-        <label htmlFor={textareaId} className="block text-xs font-semibold text-slate-300">
+        <label htmlFor={textareaId} className="block text-xs font-semibold text-zinc-300">
           {label}
         </label>
       )}
       <textarea
         id={textareaId}
-        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder:text-slate-500 ${
-          error ? 'border-rose-500' : ''
+        className={`w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.1] text-zinc-100 text-xs sm:text-sm focus:outline-none focus:border-[#38bdf8]/70 focus:ring-1 focus:ring-[#38bdf8]/30 transition placeholder:text-zinc-500 ${
+          error ? 'border-rose-500/80 focus:border-rose-500' : ''
         } ${className}`}
         {...props}
       />
-      {hint && !error && <p className="text-[11px] text-slate-400">{hint}</p>}
+      {hint && !error && <p className="text-[11px] text-zinc-400">{hint}</p>}
       {error && <p className="text-[11px] text-rose-400 font-medium">{error}</p>}
     </div>
   );

@@ -1,83 +1,54 @@
 import { NextResponse } from 'next/server';
-
-// Server-side dynamic records registry (synced with db)
-const dynamicRegistry = new Map<string, any>([
-  [
-    'onetime_coupon_101',
-    {
-      id: 'onetime_coupon_101',
-      title: 'One-Time Secret VIP Discount ($50 Off)',
-      mode: 'one_time',
-      maxScans: 1,
-      currentScans: 0,
-      isBurned: false,
-      isRevoked: false,
-      destinationType: 'url',
-      destinationPayload: 'https://strixdevs.com/?discount=VIP-STRIX-50',
-      createdAt: '2026-11-01T09:15:00Z',
-    },
-  ],
-  [
-    'timelimited_menu_202',
-    {
-      id: 'timelimited_menu_202',
-      title: 'Flash Sale (Expires in 24 Hours)',
-      mode: 'time_limited',
-      currentScans: 2,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      isBurned: false,
-      isRevoked: false,
-      destinationType: 'url',
-      destinationPayload: 'https://strixdevs.com/flash-sale',
-      createdAt: '2026-11-02T12:00:00Z',
-    },
-  ],
-]);
+import { checkRateLimit } from '@/utils/security';
+import { resolveDynamicQR } from '@/services/qrRegistry';
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ codeId: string }> }
 ) {
-  const { codeId } = await params;
-  const record = dynamicRegistry.get(codeId);
+  // 0. API Rate Limiting (120 requests/minute per IP)
+  const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+  const { allowed, resetInSeconds } = checkRateLimit(`resolver:${clientIp}`, {
+    limit: 120,
+    windowSeconds: 60,
+  });
 
-  if (!record) {
+  if (!allowed) {
+    return NextResponse.json(
+      { error: `Too many scan requests. Rate limited for ${resetInSeconds}s.` },
+      { status: 429, headers: { 'Retry-After': String(resetInSeconds) } }
+    );
+  }
+
+  const { codeId } = await params;
+  const url = new URL(request.url);
+  const enteredPin = url.searchParams.get('pin') || undefined;
+  const userAgent = request.headers.get('user-agent') || undefined;
+
+  // Resolve real dynamic QR code from Cloud Registry & Supabase
+  const result = await resolveDynamicQR(codeId, {
+    pin: enteredPin,
+    userAgent,
+  });
+
+  if (result.status === 'not_found') {
     return NextResponse.json({ status: 'not_found' }, { status: 404 });
   }
 
-  // 1. Check if manually revoked
-  if (record.isRevoked) {
-    return NextResponse.json({ status: 'revoked', record });
+  if (result.status === 'blocked') {
+    return NextResponse.json(
+      { status: 'blocked', error: result.error || 'Destination blocked' },
+      { status: 400 }
+    );
   }
 
-  // 2. Check if one-time code is already burned
-  if (record.isBurned || (record.mode === 'one_time' && record.currentScans >= record.maxScans)) {
-    return NextResponse.json({
-      status: 'burned',
-      record,
-      burnTimestamp: record.burnedAt || record.createdAt,
-    });
+  if (result.status === 'pin_required') {
+    return NextResponse.json({ status: 'pin_required', record: result.record }, { status: 403 });
   }
 
-  // 3. Check if time-limited code is expired
-  if (record.mode === 'time_limited' && record.expiresAt) {
-    if (Date.now() > new Date(record.expiresAt).getTime()) {
-      return NextResponse.json({ status: 'expired', record });
-    }
-  }
-
-  // 4. Valid scan: Increment scans atomically and burn if one-time
-  record.currentScans = (record.currentScans || 0) + 1;
-  if (record.mode === 'one_time' && record.currentScans >= record.maxScans) {
-    record.isBurned = true;
-    record.burnedAt = new Date().toISOString();
-  }
-
-  return NextResponse.json({
-    status: 'success',
-    record,
-    destination: record.destinationPayload,
-    destinationType: record.destinationType,
+  return NextResponse.json(result, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30',
+    },
   });
 }
-

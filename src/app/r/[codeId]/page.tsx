@@ -2,7 +2,7 @@
 
 import React, { use } from 'react';
 import { useRouter } from 'next/navigation';
-import { QRResolverView } from '../../../components/QRResolverView';
+import { QRResolverView } from '../../../components/resolver/QRResolverView';
 
 export default function DynamicResolverPage({
   params,

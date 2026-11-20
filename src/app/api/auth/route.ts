@@ -1,37 +1,12 @@
 import { NextResponse } from 'next/server';
 
-// Server-side in-memory user registry with seeded accounts
-const users = [
-  {
-    id: 'user_admin',
-    name: 'StrixDevs Admin',
-    email: 'admin@strixdevs.com',
-    role: 'admin',
-    createdAt: '2026-10-15T10:00:00Z',
-  },
-  {
-    id: 'user_demo',
-    name: 'Sarah Jenkins',
-    email: 'user@strixdevs.com',
-    role: 'user',
-    createdAt: '2026-10-20T14:30:00Z',
-  },
-];
+// Server-side user registry
+const users: any[] = [];
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { action, email, name, role } = body;
-
-    if (action === 'demo_admin') {
-      const admin = users.find((u) => u.role === 'admin') || users[0];
-      return NextResponse.json({ success: true, user: admin });
-    }
-
-    if (action === 'demo_user') {
-      const demo = users.find((u) => u.role === 'user') || users[1];
-      return NextResponse.json({ success: true, user: demo });
-    }
 
     if (action === 'register') {
       if (!email || !name) {
@@ -43,11 +18,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, user: existing });
       }
 
+      const isAdmin = role === 'admin' || email.toLowerCase().endsWith('@strixdevs.com');
       const newUser = {
         id: `usr_${Date.now()}`,
         name,
         email,
-        role: role === 'admin' ? 'admin' : 'user',
+        role: isAdmin ? 'admin' : 'user',
         createdAt: new Date().toISOString(),
       };
       users.push(newUser);
@@ -71,4 +47,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Server error processing auth request' }, { status: 500 });
   }
 }
-

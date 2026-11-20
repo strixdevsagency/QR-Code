@@ -7,7 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/admin/'],
     },
-    sitemap: 'https://strixdevs.com/sitemap.xml',
+    sitemap: 'https://qr.strixdevs.com/sitemap.xml',
   };
 }
-

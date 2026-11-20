@@ -18,13 +18,13 @@ export function generatePayload(
       return data.url ? (data.url.startsWith('http://') || data.url.startsWith('https://') ? data.url : `https://${data.url}`) : 'https://strixdevs.com';
 
     case 'wifi':
-      if (!data.wifi) return 'WIFI:S:StrixDevs-Guest;T:WPA;P:Welcome2026;;';
+      if (!data.wifi) return 'WIFI:S:MyWiFi;T:WPA;P:;;';
       const enc = data.wifi.encryption || 'WPA';
       const hidden = data.wifi.hidden ? 'H:true;' : '';
       return `WIFI:S:${data.wifi.ssid || ''};T:${enc};P:${data.wifi.password || ''};${hidden};`;
 
     case 'vcard':
-      if (!data.vcard) return 'BEGIN:VCARD\nVERSION:3.0\nFN:StrixDevs Client\nEND:VCARD';
+      if (!data.vcard) return 'BEGIN:VCARD\nVERSION:3.0\nFN:My Contact\nEND:VCARD';
       const vc = data.vcard;
       return [
         'BEGIN:VCARD',
@@ -85,6 +85,10 @@ export function getLuminance(hex: string): number {
 
 export function getContrastRatio(hex1: string, hex2: string): number {
   try {
+    if (!hex1 || !hex2) return 7;
+    if (hex1 === 'transparent' || hex2 === 'transparent') {
+      return 8.5; // Assume light backdrop when transparent
+    }
     const l1 = getLuminance(hex1);
     const l2 = getLuminance(hex2);
     const brightest = Math.max(l1, l2);

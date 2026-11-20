@@ -12,12 +12,12 @@ export const Card: React.FC<CardProps> = ({
   className = '',
   ...props
 }) => {
-  const base = 'rounded-2xl border border-slate-800 transition-colors';
+  const base = 'rounded-2xl border border-white/[0.08] transition-colors';
 
   const variants = {
-    default: 'bg-[#111827] shadow-sm',
-    elevated: 'bg-[#111827] shadow-md border-slate-750',
-    subtle: 'bg-[#0f172a]/60',
+    default: 'bg-zinc-900/60 backdrop-blur-sm shadow-sm',
+    elevated: 'bg-zinc-900/80 backdrop-blur-md shadow-xl border-white/[0.12]',
+    subtle: 'bg-zinc-950/40',
   }[variant];
 
   const paddings = {

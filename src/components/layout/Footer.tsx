@@ -1,57 +1,62 @@
 import React from 'react';
+import { StrixLogo } from '../StrixLogo';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="border-t border-slate-800 bg-[#080c14] py-12 px-4 sm:px-6 lg:px-8 mt-20">
+    <footer className="border-t border-white/[0.08] bg-[#09090b] py-14 px-4 sm:px-6 lg:px-8 mt-24">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                SQ
-              </div>
-              <span className="text-xl font-bold text-white tracking-tight">StrixQR</span>
+            <div className="flex items-center">
+              <StrixLogo className="h-8 w-auto" />
             </div>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
-              A high-utility, non-expiring QR code engine built by <strong className="text-slate-200">StrixDevs</strong>. Serving businesses, restaurants, and digital creators worldwide with 100% free lifetime static codes.
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-md leading-relaxed">
+              A high-utility, permanent vector QR code & 2D matrix engine by <strong className="text-zinc-200">StrixDevs</strong>. Built for developers, designers, and modern products with 100% client-side matrix rendering.
             </p>
-            <div className="flex items-center gap-2 pt-2 text-xs text-slate-400">
-              <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                Global Infrastructure
+            <div className="flex flex-wrap items-center gap-2 pt-2 text-xs text-zinc-400">
+              <span className="px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/[0.08] text-zinc-300 font-mono text-[11px] whitespace-nowrap">
+                Zero Tracking
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                Enterprise Grade
+              <span className="px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/[0.08] text-zinc-300 font-mono text-[11px] whitespace-nowrap">
+                100% Client-Side
               </span>
-              <span className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-                100% Free Lifetime
+              <span className="px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/[0.08] text-zinc-300 font-mono text-[11px] whitespace-nowrap">
+                Vector SVG / 300 DPI
               </span>
             </div>
           </div>
 
-          {/* StrixDevs Agency Services */}
+          {/* StrixDevs Engineering Services */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-3">
-              StrixDevs Products & Services
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-3">
+              Explore & Resources
             </h4>
-            <ul className="space-y-2 text-xs text-slate-400">
+            <ul className="space-y-2.5 text-xs text-zinc-400">
               <li>
-                <a href="https://strixdevs.com" target="_blank" rel="noreferrer" className="hover:text-blue-400 transition">
-                  Custom Web & App Development ↗
-                </a>
-              </li>
-              <li className="text-slate-400">
-                Strix Password Vault <span className="text-[10px] bg-blue-950/60 text-blue-300 px-1.5 py-0.5 rounded ml-1 border border-blue-800/40">Coming Soon</span>
-              </li>
-              <li>
-                <a href="#sponsor-section" className="hover:text-blue-400 transition">
-                  Corporate Sponsorships
+                <a href="#use-cases" className="hover:text-[#38bdf8] transition-colors">
+                  Industry Solutions
                 </a>
               </li>
               <li>
-                <a href="/llms.txt" target="_blank" className="hover:text-blue-400 transition">
-                  AI Documentation (llms.txt)
+                <a href="#why-expire" className="hover:text-[#38bdf8] transition-colors">
+                  Static vs. Redirect Architecture
+                </a>
+              </li>
+              <li>
+                <a href="#faq" className="hover:text-[#38bdf8] transition-colors">
+                  Frequently Asked Questions
+                </a>
+              </li>
+              <li>
+                <a href="#contact" className="hover:text-[#38bdf8] transition-colors">
+                  Contact & Enterprise Support
+                </a>
+              </li>
+              <li>
+                <a href="/llms.txt" target="_blank" className="hover:text-[#38bdf8] transition-colors">
+                  AI Context (llms.txt)
                 </a>
               </li>
             </ul>
@@ -59,24 +64,25 @@ export const Footer: React.FC = () => {
 
           {/* Compliance & Trust */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-3">
-              Trust & Compliance
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-3">
+              Trust & Standards
             </h4>
-            <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              Compliant with Google AdSense Policies, GDPR, and CCPA standards. 100% client-side data privacy with zero server logging.
+            <p className="text-xs text-zinc-400 leading-relaxed mb-3">
+              ISO/IEC 18004 compliant 2D symbology with <span className="whitespace-nowrap">Reed-Solomon</span> Error Correction. Zero middleman telemetry and zero server data retention.
             </p>
-            <div className="text-[11px] text-slate-500 font-mono">
-              Reed-Solomon Level H Error Correction
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 border border-white/[0.08] text-[11px] text-zinc-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>Reed-Solomon Level H Matrix</span>
             </div>
           </div>
         </div>
 
         {/* Bottom copyright */}
-        <div className="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} StrixDevs (strix-devs). All rights reserved.</p>
+        <div className="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+          <p>© {new Date().getFullYear()} StrixDevs. All rights reserved.</p>
           <p>
             Engineered by{' '}
-            <a href="https://strixdevs.com" target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 font-semibold">
+            <a href="https://strixdevs.com" target="_blank" rel="noreferrer" className="text-zinc-300 hover:text-white font-medium transition">
               StrixDevs
             </a>
           </p>

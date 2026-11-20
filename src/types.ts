@@ -6,6 +6,8 @@ export type CornerDotType = 'square' | 'dot';
 
 export type ExpiryMode = 'lifetime' | 'one_time' | 'time_limited';
 
+export type PresetLogoId = 'strix' | 'wifi' | 'whatsapp' | 'instagram' | 'maps' | 'verified' | 'review';
+
 export interface QRDesignOptions {
   dotsType: DotType;
   dotsColor: string;
@@ -16,11 +18,24 @@ export interface QRDesignOptions {
   cornerSquareColor: string;
   cornerDotType: CornerDotType;
   cornerDotColor: string;
+  customEyeColors?: boolean;
   backgroundColor: string;
   margin: number;
   logoUrl?: string;
+  presetLogoId?: PresetLogoId | null;
+  badgeColor?: string;
   logoSize: number;
   validityTerm: 'lifetime' | '1year' | '6months';
+}
+
+export interface SmartRouteConfig {
+  enabled: boolean;
+  iosUrl?: string;
+  androidUrl?: string;
+  timeScheduled?: boolean;
+  timeStart?: string; // "11:00"
+  timeEnd?: string;   // "16:00"
+  scheduleUrl?: string;
 }
 
 export interface DynamicQRConfig {
@@ -33,6 +48,20 @@ export interface DynamicQRConfig {
   isRevoked?: boolean;
   destinationType: QRType;
   destinationPayload: string;
+  smartRouting?: SmartRouteConfig;
+  pinProtected?: boolean;
+  pinCode?: string;
+}
+
+export interface BulkQRItem {
+  id: string;
+  title: string;
+  payload: string;
+  type: QRType;
+  status: 'pending' | 'generating' | 'done' | 'error';
+  dataUrl?: string;
+  svgString?: string;
+  error?: string;
 }
 
 export interface WifiData {
@@ -68,13 +97,41 @@ export interface CryptoData {
 
 /* User & Authentication */
 export type UserRole = 'admin' | 'user';
+export type UserTier = 'free' | 'pro' | 'enterprise';
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  tier?: UserTier;
   createdAt: string;
+}
+
+/* Pricing & Subscriptions */
+export type BillingInterval = 'monthly' | 'annual';
+
+export interface PricingPlan {
+  id: UserTier;
+  name: string;
+  tagline: string;
+  priceMonthly: number;
+  priceAnnual: number; // monthly equivalent when billed annually
+  annualBilledTotal: number;
+  highlighted?: boolean;
+  popularBadge?: string;
+  features: string[];
+  ctaLabel: string;
+  limits: {
+    dynamicQRs: number | 'unlimited';
+    monthlyScans: number | 'unlimited';
+    bulkGeneration: boolean;
+    customLogos: number | 'unlimited';
+    vectorPdf: boolean;
+    smartRouting: boolean;
+    analytics: 'basic' | 'advanced' | 'enterprise';
+    adFree: boolean;
+  };
 }
 
 /* User Dashboard Assets */
@@ -109,15 +166,27 @@ export interface AnalyticsConfig {
   adSenseEnabled: boolean;
 }
 
+export interface DirectSponsorConfig {
+  sponsorName: string;
+  sponsorUrl?: string;
+  imageUrl?: string;
+  customHtml?: string;
+  startDate?: string;
+  endDate?: string; // Time limit for sponsor e.g. "2026-12-31"
+  isActive: boolean;
+}
+
 export interface AdSlotConfig {
   id: 'leaderboard' | 'sidebar' | 'infeed' | 'modal';
   name: string;
   description: string;
   dimensions: string;
   enabled: boolean;
+  hideWhenNoSponsor?: boolean; // Admin right to hide ad slot when no sponsor
   adClient: string; // e.g. "ca-pub-XXXXXXXXXXXX"
   adSlot: string;   // e.g. "1234567890"
   customHtml?: string;
+  directSponsor?: DirectSponsorConfig;
 }
 
 /* Corporate Sponsorship Inquiries */

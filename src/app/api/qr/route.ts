@@ -1,42 +1,9 @@
 import { NextResponse } from 'next/server';
+import { checkRateLimit, sanitizeText, validateRedirectUrl } from '@/utils/security';
+import { registerQRCode } from '@/services/qrRegistry';
 
-// Server-side in-memory QR store
-const qrcodes: any[] = [
-  {
-    id: 'onetime_coupon_101',
-    userId: 'user_demo',
-    title: 'One-Time Secret VIP Discount ($50 Off)',
-    qrType: 'url',
-    payload: 'https://strixdevs.com/r/onetime_coupon_101',
-    design: {
-      dotsType: 'classy',
-      dotsColor: '#1e293b',
-      isGradient: true,
-      dotsColorEnd: '#4f46e5',
-      gradientType: 'linear',
-      cornerSquareType: 'extra-rounded',
-      cornerSquareColor: '#4f46e5',
-      cornerDotType: 'dot',
-      cornerDotColor: '#4f46e5',
-      backgroundColor: '#ffffff',
-      margin: 8,
-      logoSize: 0.35,
-      validityTerm: 'lifetime',
-    },
-    downloadCount: 38,
-    createdAt: '2026-11-01T09:15:00Z',
-    isDynamic: true,
-    dynamicConfig: {
-      mode: 'one_time',
-      maxScans: 1,
-      currentScans: 0,
-      isBurned: false,
-      isRevoked: false,
-      destinationType: 'url',
-      destinationPayload: 'https://strixdevs.com/?discount=VIP-STRIX-50',
-    },
-  },
-];
+// Server-side in-memory QR store (fallback)
+const qrcodes: any[] = [];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -51,12 +18,37 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+  const { allowed, resetInSeconds } = checkRateLimit(`qr_create:${ip}`, {
+    limit: 60,
+    windowSeconds: 60,
+  });
+
+  if (!allowed) {
+    return NextResponse.json(
+      { error: `Too many QR operations. Try again in ${resetInSeconds} seconds.` },
+      { status: 429 }
+    );
+  }
+
   try {
     const data = await request.json();
+
+    // Validate dynamic destination if url
+    if (data.isDynamic && data.dynamicConfig?.destinationType === 'url') {
+      const safety = validateRedirectUrl(data.dynamicConfig.destinationPayload);
+      if (!safety.safe) {
+        return NextResponse.json(
+          { error: `Dynamic destination blocked: ${safety.reason}` },
+          { status: 400 }
+        );
+      }
+    }
+
     const newQR = {
       id: data.id || `sqr_${Date.now()}`,
       userId: data.userId || 'anonymous',
-      title: data.title || 'Untitled QR',
+      title: sanitizeText(data.title || 'Untitled QR', 100),
       qrType: data.qrType || 'url',
       payload: data.payload || '',
       design: data.design,
@@ -71,6 +63,7 @@ export async function POST(request: Request) {
     }
 
     qrcodes.unshift(newQR);
+    await registerQRCode(newQR as any);
     return NextResponse.json({ success: true, qr: newQR });
   } catch {
     return NextResponse.json({ error: 'Failed to save QR' }, { status: 500 });

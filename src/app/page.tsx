@@ -1,62 +1,74 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '../components/layout/Header';
 import { HeroSection } from '../components/marketing/HeroSection';
 import { QRGenerator } from '../components/generator/QRGenerator';
+import { BulkGenerator } from '../components/generator/BulkGenerator';
 import { QRPreview } from '../components/preview/QRPreview';
 import { QRScanner } from '../components/scanner/QRScanner';
+import { UseCasesSection } from '../components/marketing/UseCasesSection';
 import { ComparisonSection } from '../components/marketing/ComparisonSection';
-import { SponsorSection } from '../components/marketing/SponsorSection';
+import { FAQSection } from '../components/marketing/FAQSection';
+import { ContactSection } from '../components/marketing/ContactSection';
 import { Footer } from '../components/layout/Footer';
 import { AdBanner } from '../components/monetization/AdBanner';
 import { UserDashboard } from '../components/dashboard/UserDashboard';
 import { AdminDashboard } from '../components/admin/AdminDashboard';
 import { AuthModal } from '../components/AuthModal';
-import { QRResolverView } from '../components/QRResolverView';
+import { PricingModal } from '../components/pricing/PricingModal';
+import { QRResolverView } from '../components/resolver/QRResolverView';
+import { useAuth } from '../context/AuthContext';
 import type { QRType, QRDesignOptions, WifiData, VCardData, WhatsappData, CryptoData, SavedQRCode, ExpiryMode } from '../types';
 import { generatePayload } from '../utils/qrPayload';
+import { generatePresetLogoSvg } from '../utils/presetBadges';
 
 export default function HomePage() {
-  const [activeView, setActiveView] = useState<'generator' | 'scanner' | 'dashboard' | 'admin'>('generator');
+  const { updateUserTier } = useAuth();
+  const [activeView, setActiveView] = useState<'generator' | 'bulk' | 'scanner' | 'dashboard' | 'admin'>('generator');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState<boolean>(false);
   const [resolverCodeId, setResolverCodeId] = useState<string | null>(null);
 
   // Payload inputs
   const [payloadType, setPayloadType] = useState<QRType>('url');
   const [urlValue, setUrlValue] = useState<string>('https://strixdevs.com');
   const [wifiData, setWifiData] = useState<WifiData>({
-    ssid: 'StrixDevs-Guest',
-    password: 'WelcomeGuest2026',
+    ssid: '',
+    password: '',
     encryption: 'WPA',
     hidden: false,
   });
   const [vcardData, setVcardData] = useState<VCardData>({
-    firstName: 'Alex',
-    lastName: 'Vance',
-    company: 'StrixDevs Partner',
-    title: 'Managing Director',
-    phone: '+1 (800) 555-0199',
-    email: 'alex@strixdevs.com',
-    website: 'https://strixdevs.com',
-    street: '100 Innovation Way',
-    city: 'Metro City',
-    country: 'USA',
+    firstName: '',
+    lastName: '',
+    company: '',
+    title: '',
+    phone: '',
+    email: '',
+    website: '',
+    street: '',
+    city: '',
+    country: '',
   });
   const [whatsappData, setWhatsappData] = useState<WhatsappData>({
-    phone: '18005550199',
-    message: 'Hello StrixDevs, I want to inquire about custom software development!',
+    phone: '',
+    message: '',
   });
-  const [textValue, setTextValue] = useState<string>('Permanent QR Code created with StrixDevs QR');
+  const [textValue, setTextValue] = useState<string>('Strix QR — Production-Grade Vector QR Engine');
+  const [smsData, setSmsData] = useState<{ phone: string; message: string }>({
+    phone: '',
+    message: '',
+  });
   const [emailData, setEmailData] = useState({
-    email: 'contact@strixdevs.com',
-    subject: 'Project Inquiry',
-    body: 'Hi StrixDevs, let us discuss building our next digital product.',
+    email: '',
+    subject: '',
+    body: '',
   });
   const [cryptoData, setCryptoData] = useState<CryptoData>({
     currency: 'BTC',
-    address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-    amount: '0.01',
+    address: '',
+    amount: '',
   });
 
   // Expiration & Security Mode
@@ -77,7 +89,7 @@ export default function HomePage() {
     backgroundColor: '#ffffff',
     margin: 8,
     logoUrl: undefined,
-    logoSize: 0.35,
+    logoSize: 0.26,
     validityTerm: 'lifetime',
   });
 
@@ -87,19 +99,75 @@ export default function HomePage() {
     wifi: wifiData,
     vcard: vcardData,
     whatsapp: whatsappData,
+    sms: smsData,
     email: emailData,
     crypto: cryptoData,
   });
 
+  // Synchronize preset badge ink colors with QR dots and background colors
+  useEffect(() => {
+    if (design.presetLogoId) {
+      const updatedSvg = generatePresetLogoSvg(
+        design.presetLogoId,
+        design.dotsColor,
+        design.backgroundColor,
+        design.isGradient,
+        design.dotsColorEnd,
+        design.badgeColor
+      );
+      if (design.logoUrl !== updatedSvg) {
+        setDesign((prev) => ({ ...prev, logoUrl: updatedSvg }));
+      }
+    }
+  }, [
+    design.presetLogoId,
+    design.dotsColor,
+    design.backgroundColor,
+    design.isGradient,
+    design.dotsColorEnd,
+    design.badgeColor,
+    design.logoUrl,
+  ]);
+
   const handleAutoFixContrast = () => {
-    setDesign((prev) => ({
-      ...prev,
-      dotsColor: '#0f172a',
-      cornerSquareColor: '#0f172a',
-      cornerDotColor: '#0f172a',
-      backgroundColor: '#ffffff',
-      isGradient: false,
-    }));
+    setDesign((prev) => {
+      const fixedSvg = prev.presetLogoId
+        ? generatePresetLogoSvg(
+            prev.presetLogoId,
+            '#0f172a',
+            '#ffffff',
+            false
+          )
+        : prev.logoUrl;
+
+      // Ensure finder eye geometry is optical-grade compatible:
+      // Square frame + circle dot causes diagonal ratio distortion in optical sensors.
+      // Align to smooth extra-rounded + circle dot, or square + square dot.
+      let targetCornerSquare = prev.cornerSquareType;
+      let targetCornerDot = prev.cornerDotType;
+      if (targetCornerSquare === 'square' && targetCornerDot === 'dot') {
+        targetCornerSquare = 'extra-rounded';
+      }
+
+      return {
+        ...prev,
+        dotsColor: '#0f172a',
+        cornerSquareColor: '#0f172a',
+        cornerDotColor: '#0f172a',
+        backgroundColor: '#ffffff',
+        isGradient: false,
+        badgeColor: undefined,
+        customEyeColors: false,
+        cornerSquareType: targetCornerSquare,
+        cornerDotType: targetCornerDot,
+        // Replace high-jam dot patterns with smooth rounded modules
+        dotsType: prev.dotsType === 'dots' || prev.dotsType === 'classy' ? 'rounded' : prev.dotsType,
+        // Restore ISO 18004 compliant 4-module quiet zone (minimum 12px)
+        margin: Math.max(prev.margin, 12),
+        logoSize: prev.logoUrl ? 0.20 : 0.26,
+        logoUrl: fixedSvg,
+      };
+    });
   };
 
   const handleLoadQRToGenerator = (savedQR: SavedQRCode) => {
@@ -107,6 +175,17 @@ export default function HomePage() {
     if (savedQR.qrType === 'url') setUrlValue(savedQR.payload);
     else setTextValue(savedQR.payload);
     setDesign(savedQR.design);
+    setActiveView('generator');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLoadScannedToGenerator = (rawPayload: string, type: QRType = 'url') => {
+    setPayloadType(type);
+    if (type === 'url') {
+      setUrlValue(rawPayload);
+    } else {
+      setTextValue(rawPayload);
+    }
     setActiveView('generator');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -123,11 +202,12 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-sans selection:bg-zinc-800 selection:text-white">
       <Header
         activeView={activeView}
         setActiveView={setActiveView}
         onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenPricing={() => setIsPricingModalOpen(true)}
         onNavigateToSection={scrollToSection}
       />
 
@@ -136,7 +216,14 @@ export default function HomePage() {
           <>
             <HeroSection />
 
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Top Leaderboard Ad Slot (Active in Free Mode) */}
+            <AdBanner
+              slotType="leaderboard"
+              onOpenPricing={() => setIsPricingModalOpen(true)}
+              className="w-full my-4"
+            />
+
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               <div className="lg:col-span-7">
                 <QRGenerator
                   payloadType={payloadType}
@@ -151,6 +238,8 @@ export default function HomePage() {
                   setWhatsappData={setWhatsappData}
                   textValue={textValue}
                   setTextValue={setTextValue}
+                  smsData={smsData}
+                  setSmsData={setSmsData}
                   emailData={emailData}
                   setEmailData={setEmailData}
                   cryptoData={cryptoData}
@@ -175,18 +264,38 @@ export default function HomePage() {
                   onOpenAuth={() => setIsAuthModalOpen(true)}
                   onTriggerDynamicResolver={(codeId) => setResolverCodeId(codeId)}
                 />
-                <AdBanner slotType="rectangle" className="w-full" />
+                <AdBanner
+                  slotType="rectangle"
+                  onOpenPricing={() => setIsPricingModalOpen(true)}
+                  className="w-full"
+                />
               </div>
             </div>
 
+            <UseCasesSection />
             <ComparisonSection />
-            <SponsorSection />
+
+            {/* In-Feed Banner Ad Slot (Active in Free Mode) */}
+            <AdBanner
+              slotType="in-feed"
+              onOpenPricing={() => setIsPricingModalOpen(true)}
+              className="w-full my-8"
+            />
+
+            <FAQSection />
+            <ContactSection />
           </>
+        )}
+
+        {activeView === 'bulk' && (
+          <div className="mt-8">
+            <BulkGenerator design={design} />
+          </div>
         )}
 
         {activeView === 'scanner' && (
           <div className="mt-8">
-            <QRScanner />
+            <QRScanner onLoadToGenerator={handleLoadScannedToGenerator} />
           </div>
         )}
 
@@ -208,6 +317,12 @@ export default function HomePage() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      <PricingModal
+        isOpen={isPricingModalOpen}
+        onClose={() => setIsPricingModalOpen(false)}
+        onPlanSelected={(tier) => updateUserTier(tier)}
       />
 
       {resolverCodeId && (

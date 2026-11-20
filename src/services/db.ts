@@ -1,13 +1,13 @@
 import type { User, SavedQRCode, SavedLogo, AdSlotConfig, SponsorshipLead, AnalyticsConfig } from '../types';
 import { DEFAULT_USERS, DEFAULT_ANALYTICS, DEFAULT_ADS, DEFAULT_QRS, DEFAULT_LEADS } from './seedData';
 
-const USERS_KEY = 'strix_users_v2';
-const QR_KEY = 'strix_qrcodes_v2';
-const LOGOS_KEY = 'strix_logos_v2';
-const ADS_KEY = 'strix_ads_v2';
-const LEADS_KEY = 'strix_leads_v2';
-const ANALYTICS_KEY = 'strix_analytics_v2';
-const CURRENT_USER_KEY = 'strix_current_user_v2';
+const USERS_KEY = 'strix_users_v3';
+const QR_KEY = 'strix_qrcodes_v3';
+const LOGOS_KEY = 'strix_logos_v3';
+const ADS_KEY = 'strix_ads_v3';
+const LEADS_KEY = 'strix_leads_v3';
+const ANALYTICS_KEY = 'strix_analytics_v3';
+const CURRENT_USER_KEY = 'strix_current_user_v3';
 
 class DatabaseService {
   private getItem<T>(key: string, fallback: T): T {
@@ -78,6 +78,28 @@ class DatabaseService {
     this.setItem(CURRENT_USER_KEY, null);
   }
 
+  updateUserTier(userId: string, tier: import('../types').UserTier): User | null {
+    const users = this.getUsers();
+    const user = users.find((u) => u.id === userId);
+    if (user) {
+      user.tier = tier;
+      this.setItem(USERS_KEY, users);
+      const current = this.getCurrentUser();
+      if (current && current.id === userId) {
+        current.tier = tier;
+        this.setCurrentUser(current);
+      }
+      return user;
+    }
+    const current = this.getCurrentUser();
+    if (current) {
+      current.tier = tier;
+      this.setCurrentUser(current);
+      return current;
+    }
+    return null;
+  }
+
   // --- QR Codes ---
   getAllQRs(): SavedQRCode[] {
     return this.getItem<SavedQRCode[]>(QR_KEY, DEFAULT_QRS);
@@ -113,12 +135,32 @@ class DatabaseService {
 
     qrs.unshift(newQR);
     this.setItem(QR_KEY, qrs);
+
+    // Sync with production cloud registry and Supabase
+    if (typeof window !== 'undefined') {
+      fetch('/api/qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newQR),
+      }).catch(() => {});
+    }
+
     return newQR;
   }
 
   updateQRCode(id: string, updates: Partial<SavedQRCode>): void {
     const qrs = this.getAllQRs().map((q) => (q.id === id ? { ...q, ...updates } : q));
     this.setItem(QR_KEY, qrs);
+
+    // Sync updated QR code with cloud registry & Supabase
+    const updated = qrs.find((q) => q.id === id);
+    if (updated && typeof window !== 'undefined') {
+      fetch('/api/qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      }).catch(() => {});
+    }
   }
 
   deleteQRCode(id: string): void {
@@ -126,8 +168,8 @@ class DatabaseService {
   }
 
   // --- Dynamic Ephemeral Resolver ---
-  recordScan(id: string): {
-    status: 'success' | 'burned' | 'expired' | 'revoked' | 'not_found';
+  recordScan(id: string, options?: { pin?: string; userAgent?: string }): {
+    status: 'success' | 'burned' | 'expired' | 'revoked' | 'not_found' | 'pin_required';
     qr?: SavedQRCode;
     destination?: string;
     destinationType?: SavedQRCode['qrType'];
@@ -151,6 +193,36 @@ class DatabaseService {
       if (Date.now() > new Date(cfg.expiresAt).getTime()) return { status: 'expired', qr };
     }
 
+    // PIN Protection Check
+    if (cfg.pinProtected && cfg.pinCode) {
+      if (!options?.pin || options.pin !== cfg.pinCode) {
+        return { status: 'pin_required', qr };
+      }
+    }
+
+    let resolvedDestination = cfg.destinationPayload;
+
+    // Smart Routing Logic
+    if (cfg.smartRouting?.enabled) {
+      const ua = options?.userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : '');
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      const isAndroid = /Android/i.test(ua);
+
+      if (isIOS && cfg.smartRouting.iosUrl) {
+        resolvedDestination = cfg.smartRouting.iosUrl;
+      } else if (isAndroid && cfg.smartRouting.androidUrl) {
+        resolvedDestination = cfg.smartRouting.androidUrl;
+      } else if (cfg.smartRouting.timeScheduled && cfg.smartRouting.scheduleUrl) {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const startHour = cfg.smartRouting.timeStart ? parseInt(cfg.smartRouting.timeStart.split(':')[0], 10) : 0;
+        const endHour = cfg.smartRouting.timeEnd ? parseInt(cfg.smartRouting.timeEnd.split(':')[0], 10) : 24;
+        if (currentHour >= startHour && currentHour < endHour) {
+          resolvedDestination = cfg.smartRouting.scheduleUrl;
+        }
+      }
+    }
+
     const newScans = (cfg.currentScans || 0) + 1;
     const shouldBurn = cfg.mode === 'one_time' && newScans >= (cfg.maxScans || 1);
 
@@ -165,7 +237,7 @@ class DatabaseService {
     return {
       status: 'success',
       qr: { ...qr, dynamicConfig: updatedConfig },
-      destination: cfg.destinationPayload,
+      destination: resolvedDestination,
       destinationType: cfg.destinationType,
     };
   }

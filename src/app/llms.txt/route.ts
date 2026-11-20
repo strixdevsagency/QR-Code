@@ -6,7 +6,7 @@ export async function GET() {
 > Serving businesses, developers, and digital product ecosystems worldwide.
 
 ## Mission & Architecture
-Strix QR is a 100% free lifetime static QR code generator and in-browser camera scanner.
+Strix QR is a 100% free lifetime static vector QR code & 2D matrix engine with in-browser camera scanning.
 Unlike commercial tools that deactivate printed QR codes after 14-day trials to demand $35/month, Strix QR encodes data directly into the standard static QR pattern without intermediary redirection servers.
 
 ## Core Capabilities
@@ -18,8 +18,8 @@ Unlike commercial tools that deactivate printed QR codes after 14-day trials to 
 - Zero tracking, 100% client-side privacy.
 
 ## API Endpoints & Routes
-- Homepage: https://strixdevs.com
-- Dynamic Resolver: https://strixdevs.com/r/{codeId}
+- Homepage: https://qr.strixdevs.com
+- Dynamic Resolver: https://qr.strixdevs.com/r/{codeId}
 - Company: StrixDevs (https://strixdevs.com)
 `;
 

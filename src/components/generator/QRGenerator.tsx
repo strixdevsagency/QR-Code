@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { SlidersHorizontal, Palette, Image as ImageIcon } from 'lucide-react';
+import { playTactileClick } from '../../utils/audioFeedback';
 import type {
   QRType,
   QRDesignOptions,
@@ -27,6 +29,8 @@ interface QRGeneratorProps {
   setWhatsappData: React.Dispatch<React.SetStateAction<WhatsappData>>;
   textValue: string;
   setTextValue: (val: string) => void;
+  smsData: { phone: string; message: string };
+  setSmsData: React.Dispatch<React.SetStateAction<{ phone: string; message: string }>>;
   emailData: { email: string; subject: string; body: string };
   setEmailData: React.Dispatch<React.SetStateAction<{ email: string; subject: string; body: string }>>;
   cryptoData: CryptoData;
@@ -52,6 +56,8 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   setWhatsappData,
   textValue,
   setTextValue,
+  smsData,
+  setSmsData,
   emailData,
   setEmailData,
   cryptoData,
@@ -66,46 +72,62 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   const [activeTab, setActiveTab] = useState<'content' | 'style' | 'logo'>('content');
 
   return (
-    <div className="w-full bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-sm">
-      {/* 3 Step Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-4 mb-6">
+    <div className="w-full bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 backdrop-blur-2xl border border-white/[0.1] rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+      {/* 3 Step Tabs - Modern Segmented Control */}
+      <div className="p-1 bg-zinc-950/80 rounded-xl border border-white/[0.08] flex items-center gap-1 mb-6">
         <button
-          onClick={() => setActiveTab('content')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+          onClick={() => {
+            playTactileClick();
+            setActiveTab('content');
+          }}
+          className={`flex-1 min-w-0 py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer active:scale-[0.97] ${
             activeTab === 'content'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-400 hover:text-white bg-[#090d16]'
+              ? 'bg-[#38bdf8]/15 text-[#38bdf8] shadow-sm border border-[#38bdf8]/35 font-bold ring-1 ring-[#38bdf8]/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
           }`}
         >
-          1. Content & Expiration
+          <SlidersHorizontal className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'content' ? 'text-[#38bdf8]' : 'text-zinc-400'}`} />
+          <span className="whitespace-nowrap truncate font-semibold">1. Payload</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('style')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+          onClick={() => {
+            playTactileClick();
+            setActiveTab('style');
+          }}
+          className={`flex-1 min-w-0 py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer active:scale-[0.97] ${
             activeTab === 'style'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-400 hover:text-white bg-[#090d16]'
+              ? 'bg-[#38bdf8]/15 text-[#38bdf8] shadow-sm border border-[#38bdf8]/35 font-bold ring-1 ring-[#38bdf8]/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
           }`}
         >
-          2. Style & Colors
+          <Palette className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'style' ? 'text-[#38bdf8]' : 'text-zinc-400'}`} />
+          <span className="whitespace-nowrap truncate font-semibold">
+            2. <span className="hidden sm:inline">Matrix </span>Style
+          </span>
         </button>
 
         <button
-          onClick={() => setActiveTab('logo')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+          onClick={() => {
+            playTactileClick();
+            setActiveTab('logo');
+          }}
+          className={`flex-1 min-w-0 py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer active:scale-[0.97] ${
             activeTab === 'logo'
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-400 hover:text-white bg-[#090d16]'
+              ? 'bg-[#38bdf8]/15 text-[#38bdf8] shadow-sm border border-[#38bdf8]/35 font-bold ring-1 ring-[#38bdf8]/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40'
           }`}
         >
-          3. Center Logo
+          <ImageIcon className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'logo' ? 'text-[#38bdf8]' : 'text-zinc-400'}`} />
+          <span className="whitespace-nowrap truncate font-semibold">
+            3. <span className="hidden sm:inline">Center </span>Brand
+          </span>
         </button>
       </div>
 
       {/* Tab 1: Content & Expiration Mode */}
       {activeTab === 'content' && (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-pop-in">
           <ExpirationPolicy
             expiryMode={expiryMode}
             setExpiryMode={setExpiryMode}
@@ -130,6 +152,8 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
             setWhatsappData={setWhatsappData}
             textValue={textValue}
             setTextValue={setTextValue}
+            smsData={smsData}
+            setSmsData={setSmsData}
             emailData={emailData}
             setEmailData={setEmailData}
             cryptoData={cryptoData}
@@ -140,12 +164,16 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
 
       {/* Tab 2: Style & Colors */}
       {activeTab === 'style' && (
-        <StyleControls design={design} setDesign={setDesign} />
+        <div className="animate-pop-in">
+          <StyleControls design={design} setDesign={setDesign} />
+        </div>
       )}
 
       {/* Tab 3: Center Logo */}
       {activeTab === 'logo' && (
-        <LogoControls design={design} setDesign={setDesign} />
+        <div className="animate-pop-in">
+          <LogoControls design={design} setDesign={setDesign} />
+        </div>
       )}
     </div>
   );

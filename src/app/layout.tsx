@@ -3,22 +3,30 @@ import './globals.css';
 import { AppProviders } from '../components/providers/AppProviders';
 
 export const metadata: Metadata = {
-  title: 'Strix QR — 100% Free Lifetime QR Code Generator & Scanner | StrixDevs',
-  description: 'Free permanent QR code generator and camera scanner by StrixDevs. Generate vector SVG, PDF, and PNG codes. Never expires, zero subscription fees, no credit card required.',
-  keywords: 'free qr code generator, permanent qr code, qr scanner online, qr code without subscription, strixdevs qr, wifi qr code generator, vcard qr code, print ready qr code',
+  title: 'Strix QR — Production-Grade Vector QR Code & 2D Matrix Engine',
+  description: 'Free, non-expiring vector QR code and 2D matrix engine by StrixDevs. Generate instant SVG, PDF, and PNG matrix codes with zero tracking and zero server dependencies.',
+  keywords: 'free qr code generator, permanent qr code, vector qr code svg, qr scanner online, wifi qr code generator, vcard qr code, print ready qr code, strix qr, strixdevs',
   authors: [{ name: 'StrixDevs', url: 'https://strixdevs.com' }],
-  metadataBase: new URL('https://strixdevs.com'),
+  metadataBase: new URL('https://qr.strixdevs.com'),
+  alternates: {
+    canonical: 'https://qr.strixdevs.com',
+  },
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     type: 'website',
-    url: 'https://strixdevs.com/tools/qr',
-    title: 'Strix QR — Free Lifetime QR Code Generator & Scanner',
-    description: 'Create permanent, custom QR codes with high-res SVG and PDF print downloads. Built for businesses, creators, and developers worldwide.',
+    url: 'https://qr.strixdevs.com',
+    title: 'Strix QR — Production-Grade Vector QR Code & 2D Matrix Engine',
+    description: 'Generate custom, permanent QR codes with instant vector SVG and 300 DPI PDF exports. Encoded directly in your browser with zero redirects.',
     siteName: 'Strix QR',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Strix QR — Free Lifetime QR Code Generator & Scanner',
-    description: 'Never pay $35/month for QR codes again. 100% static, non-expiring QR generation with live camera scanner.',
+    title: 'Strix QR — Production-Grade Vector QR Code & 2D Matrix Engine',
+    description: 'Production-ready vector QR code engine. 100% direct matrix encoding with instant SVG and PDF downloads.',
   },
 };
 
@@ -70,8 +78,15 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {process.env.NEXT_PUBLIC_ADSENSE_PUB_ID && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_PUB_ID}`}
+            crossOrigin="anonymous"
+          />
+        )}
       </head>
-      <body className="bg-[#0b0f19] text-slate-100 font-sans antialiased min-h-screen">
+      <body className="bg-[#09090b] text-zinc-100 font-sans antialiased min-h-screen selection:bg-zinc-800 selection:text-white">
         <AppProviders>
           {children}
         </AppProviders>

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://strixdevs.com';
+  const baseUrl = 'https://qr.strixdevs.com';
 
   return [
     {
@@ -11,17 +11,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/#why-expire`,
+      url: `${baseUrl}/#use-cases`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/#sponsor-section`,
+      url: `${baseUrl}/#comparison`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/#faq`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/#contact`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
     },
   ];
 }
-

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, Sparkles, Shield, ArrowRight, Zap, Info } from 'lucide-react';
 import { db } from '../../services/db';
 import { useAuth } from '../../context/AuthContext';
@@ -12,11 +12,7 @@ interface AdBannerProps {
 
 export const AdBanner: React.FC<AdBannerProps> = ({ slotType, className = '', onOpenPricing }) => {
   const { user } = useAuth();
-
-  // 1. Pro and Enterprise subscribers get a 100% Ad-Free experience
-  if (user?.tier === 'pro' || user?.tier === 'enterprise') {
-    return null;
-  }
+  const [currentTime] = useState(() => Date.now());
 
   const slotConfig = useMemo(() => {
     const slots = db.getAdSlots();
@@ -34,7 +30,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({ slotType, className = '', on
   const isSponsorValid = Boolean(
     sponsor &&
     sponsor.isActive &&
-    (!sponsor.endDate || new Date(sponsor.endDate).getTime() >= Date.now())
+    (!sponsor.endDate || new Date(sponsor.endDate).getTime() >= currentTime)
   );
 
   useEffect(() => {
@@ -53,6 +49,11 @@ export const AdBanner: React.FC<AdBannerProps> = ({ slotType, className = '', on
       }
     }
   }, [slotConfig, isSponsorValid]);
+
+  // 1. Pro and Enterprise subscribers get a 100% Ad-Free experience
+  if (user?.tier === 'pro' || user?.tier === 'enterprise') {
+    return null;
+  }
 
   // If slot is explicitly disabled by admin and marked to hide without sponsor:
   if (slotConfig && !slotConfig.enabled && slotConfig.hideWhenNoSponsor) {

@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://strixdevs.com/sitemap.xml

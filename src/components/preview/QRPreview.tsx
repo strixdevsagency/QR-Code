@@ -53,7 +53,6 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
       const existingUserQRs = user ? db.getUserQRs(user.id) : [];
       const dynamicCount = existingUserQRs.filter((q) => q.isDynamic).length;
       if (dynamicCount >= 3) {
-        alert('Free Starter Plan limit reached (maximum 3 Dynamic QR codes). Upgrade to Pro for unlimited dynamic codes, custom routing, and real-time edits.');
         onOpenPricing?.();
         return null;
       }

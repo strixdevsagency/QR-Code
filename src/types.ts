@@ -107,10 +107,21 @@ export interface User {
   tier?: UserTier;
   createdAt: string;
   avatarUrl?: string;
+  tierExpiresAt?: string | null;
+  activeRedeemedCode?: string | null;
 }
 
 /* Pricing & Subscriptions */
 export type BillingInterval = 'monthly' | 'annual';
+export type LicenseDuration = '7_days' | '1_month' | '1_year' | 'lifetime' | 'custom';
+
+export interface ActiveLicenseSession {
+  code: string;
+  tier: UserTier;
+  tierExpiresAt: string | null;
+  activatedAt: string;
+  email?: string;
+}
 
 export interface PricingPlan {
   id: UserTier | string;
@@ -142,6 +153,8 @@ export interface LicenseCode {
   id: string;
   code: string;
   tier: UserTier;
+  duration?: LicenseDuration;
+  durationDays?: number; // 7, 30, 365, 0 for lifetime
   maxUses: number; // 1 for one-time, N for team use-cases
   usedCount: number;
   usedByEmails: string[];

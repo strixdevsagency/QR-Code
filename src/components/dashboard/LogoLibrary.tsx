@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UploadCloud, Image as ImageIcon, Trash2, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import type { SavedLogo } from '../../types';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { playTactileClick } from '../../utils/audioFeedback';
 
 interface LogoLibraryProps {
@@ -17,6 +18,7 @@ export const LogoLibrary: React.FC<LogoLibraryProps> = ({
   onSelectLogoForGenerator,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [logoToDelete, setLogoToDelete] = useState<{ id: string; name: string } | null>(null);
 
   return (
     <div className="space-y-6">
@@ -127,9 +129,7 @@ export const LogoLibrary: React.FC<LogoLibraryProps> = ({
                   type="button"
                   onClick={() => {
                     playTactileClick();
-                    if (window.confirm(`Remove ${lg.name} from your logo library?`)) {
-                      onDeleteLogo(lg.id);
-                    }
+                    setLogoToDelete({ id: lg.id, name: lg.name });
                   }}
                   className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition cursor-pointer"
                   title="Remove asset"
@@ -141,6 +141,22 @@ export const LogoLibrary: React.FC<LogoLibraryProps> = ({
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!logoToDelete}
+        title="Remove Brand Asset"
+        message={`Remove "${logoToDelete?.name}" from your cloud logo library?`}
+        confirmText="Remove Asset"
+        variant="danger"
+        onClose={() => setLogoToDelete(null)}
+        onConfirm={() => {
+          if (logoToDelete) {
+            onDeleteLogo(logoToDelete.id);
+            setLogoToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 };

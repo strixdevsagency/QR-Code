@@ -14,6 +14,7 @@ import { db } from '../../services/db';
 import { PricingPlan } from '../../types';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { playTactileClick, playVictoryFanfare } from '../../utils/audioFeedback';
 
 export const PackageManager: React.FC = () => {
@@ -22,6 +23,9 @@ export const PackageManager: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [featureInput, setFeatureInput] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [pkgToDelete, setPkgToDelete] = useState<string | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [warningAlert, setWarningAlert] = useState<string | null>(null);
 
   const refreshPackages = () => {
     setPackages(db.getPackages());
@@ -82,15 +86,12 @@ export const PackageManager: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
+    playTactileClick();
     if (id === 'free' || id === 'pro') {
-      alert('The core Free and Pro starter tiers cannot be deleted. You may disable them or edit their limits.');
+      setWarningAlert('The core Free and Pro starter tiers cannot be deleted. You may disable them or edit their limits.');
       return;
     }
-    if (confirm('Are you sure you want to delete this package?')) {
-      playTactileClick();
-      db.deletePackage(id);
-      refreshPackages();
-    }
+    setPkgToDelete(id);
   };
 
   const handleToggleActive = (pkg: PricingPlan) => {
@@ -118,11 +119,8 @@ export const PackageManager: React.FC = () => {
   };
 
   const handleResetDefaults = () => {
-    if (confirm('Reset all packages to the official Strix QR default plans? Any custom plans will be replaced.')) {
-      playTactileClick();
-      db.resetPackagesToDefault();
-      refreshPackages();
-    }
+    playTactileClick();
+    setShowResetConfirm(true);
   };
 
   return (
@@ -477,6 +475,52 @@ export const PackageManager: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Package Confirmation */}
+      <ConfirmModal
+        isOpen={!!pkgToDelete}
+        onClose={() => setPkgToDelete(null)}
+        onConfirm={() => {
+          if (pkgToDelete) {
+            db.deletePackage(pkgToDelete);
+            refreshPackages();
+            setPkgToDelete(null);
+          }
+        }}
+        title="Delete Pricing Plan"
+        message="Are you sure you want to delete this subscription plan? Existing users on this plan will not be impacted immediately."
+        confirmLabel="Delete Plan"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
+
+      {/* Reset Defaults Confirmation */}
+      <ConfirmModal
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        onConfirm={() => {
+          db.resetPackagesToDefault();
+          refreshPackages();
+          setShowResetConfirm(false);
+        }}
+        title="Reset Official Packages"
+        message="Reset all packages to the official Strix QR default plans? Any customized pricing or limits will be replaced."
+        confirmLabel="Reset Plans"
+        cancelLabel="Keep Current"
+        variant="warning"
+      />
+
+      {/* Warning Notice Modal */}
+      <ConfirmModal
+        isOpen={!!warningAlert}
+        onClose={() => setWarningAlert(null)}
+        onConfirm={() => setWarningAlert(null)}
+        title="Protected Plan Tier"
+        message={warningAlert || ''}
+        confirmLabel="Understood"
+        cancelLabel="Close"
+        variant="warning"
+      />
     </div>
   );
 };

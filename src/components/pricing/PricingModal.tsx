@@ -48,7 +48,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
   const [licenseKeyInput, setLicenseKeyInput] = useState<string>('');
   const [keyErrorMsg, setKeyErrorMsg] = useState<string | null>(null);
   const [keySuccess, setKeySuccess] = useState<boolean>(false);
-  const [redeemedInfo, setRedeemedInfo] = useState<{ isTeam?: boolean; remaining?: number; tier?: string } | null>(null);
+  const [redeemedInfo, setRedeemedInfo] = useState<{ isTeam?: boolean; remaining?: number; tier?: string; durationDays?: number } | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -173,6 +173,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
         isTeam: result.isTeamCode,
         remaining: result.remainingUses,
         tier: result.tier,
+        durationDays: result.durationDays,
       });
       setTimeout(() => {
         onClose();
@@ -643,8 +644,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                 </h4>
                 <p className="text-xs text-zinc-300">
                   {redeemedInfo?.isTeam
-                    ? `Team voucher seat verified! (${redeemedInfo.remaining} team seats remaining for other members).`
-                    : 'Your single-use license key has been verified and applied to this device.'}
+                    ? `Team voucher seat verified! (${redeemedInfo.remaining} team seats remaining for other members). Valid for ${redeemedInfo.durationDays ? `${redeemedInfo.durationDays} days` : 'lifetime'}.`
+                    : `Your license session has been verified and applied (${redeemedInfo?.durationDays ? `${redeemedInfo.durationDays} days active access` : 'lifetime access'}).`}
                 </p>
               </div>
             ) : (

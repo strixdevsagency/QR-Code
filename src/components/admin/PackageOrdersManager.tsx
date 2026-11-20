@@ -13,12 +13,14 @@ import {
 import { db } from '../../services/db';
 import { PackageOrder, PackageOrderStatus, UserTier } from '../../types';
 import { Button } from '../ui/Button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { playTactileClick, playVictoryFanfare } from '../../utils/audioFeedback';
 
 export const PackageOrdersManager: React.FC = () => {
   const [orders, setOrders] = useState<PackageOrder[]>(() => db.getPackageOrders());
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
   const refreshOrders = () => {
     setOrders(db.getPackageOrders());
@@ -41,18 +43,23 @@ export const PackageOrdersManager: React.FC = () => {
     playTactileClick();
     const isTeam = (order.teamSeats || 1) > 1;
     const tier: UserTier = order.planId === 'enterprise' ? 'enterprise' : 'pro';
+    const isAnnual = order.interval === 'annual';
+    const durationDays = isAnnual ? 365 : 30;
+    const duration = isAnnual ? '1_year' : '1_month';
     const prefix = isTeam ? 'STRIX-TEAM' : tier === 'enterprise' ? 'STRIX-ENT' : 'STRIX-PRO';
     const rand = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
     const generatedCode = `${prefix}-${rand}`;
 
-    // Create the license code in vault
+    // Create the license code in vault with the exact plan duration
     db.createLicenseCode({
       code: generatedCode,
       tier,
+      duration,
+      durationDays,
       maxUses: isTeam ? (order.teamSeats || 5) : 1,
       customerName: order.name,
       customerEmail: order.email,
-      notes: `Order #${order.id} | ${order.planName} (${order.interval})`,
+      notes: `Order #${order.id} | ${order.planName} (${order.interval} - ${durationDays}d)`,
       isActive: true,
       expiresAt: null,
     });
@@ -64,11 +71,8 @@ export const PackageOrdersManager: React.FC = () => {
   };
 
   const handleDeleteOrder = (id: string) => {
-    if (confirm('Delete this order inquiry?')) {
-      playTactileClick();
-      db.deletePackageOrder(id);
-      refreshOrders();
-    }
+    playTactileClick();
+    setOrderToDelete(id);
   };
 
   const filteredOrders = orders.filter((o) => {
@@ -271,6 +275,24 @@ export const PackageOrdersManager: React.FC = () => {
           })
         )}
       </div>
+
+      {/* Delete Order Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!orderToDelete}
+        onClose={() => setOrderToDelete(null)}
+        onConfirm={() => {
+          if (orderToDelete) {
+            db.deletePackageOrder(orderToDelete);
+            refreshOrders();
+            setOrderToDelete(null);
+          }
+        }}
+        title="Delete Order Request"
+        message="Are you sure you want to permanently delete this customer package inquiry?"
+        confirmLabel="Delete Order"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
     </div>
   );
 };

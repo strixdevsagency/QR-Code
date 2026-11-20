@@ -59,7 +59,6 @@ export const LogoControls: React.FC<LogoControlsProps> = ({ design, setDesign, o
 
   const handleCustomLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isProOrAdmin) {
-      alert('Custom logo uploads and cloud storage are reserved for Pro & Enterprise members. Please upgrade or redeem a license key to attach custom logos.');
       onOpenPricing?.();
       return;
     }

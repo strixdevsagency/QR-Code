@@ -31,7 +31,15 @@ interface AuthContextType {
   updateUserTier: (tier: UserTier) => void;
   updateUserRole: (userId: string, role: UserRole) => Promise<void>;
   refreshUser: () => Promise<void>;
-  activateLicenseKey: (key: string) => { success: boolean; tier?: UserTier; error?: string; isTeamCode?: boolean; remainingUses?: number };
+  activateLicenseKey: (key: string) => {
+    success: boolean;
+    tier?: UserTier;
+    error?: string;
+    isTeamCode?: boolean;
+    remainingUses?: number;
+    durationDays?: number;
+    tierExpiresAt?: string | null;
+  };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,6 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       tier = 'enterprise';
     }
 
+    // Check local storage cache for subscription expiry and active code
+    const localUser = db.getCurrentUser();
+    const activeLicense = db.getActiveLicenseSession();
+    let tierExpiresAt = activeLicense?.tierExpiresAt || userMeta.tierExpiresAt || (localUser?.email?.toLowerCase() === email ? localUser?.tierExpiresAt : null);
+    let activeRedeemedCode = activeLicense?.code || userMeta.activeRedeemedCode || (localUser?.email?.toLowerCase() === email ? localUser?.activeRedeemedCode : null);
+    if (activeLicense && role !== 'admin') {
+      tier = activeLicense.tier;
+    }
+
     // 2. Query Supabase public.profiles table by BOTH ID and EMAIL
     if (supabase && email) {
       try {
@@ -70,11 +87,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Prefer exact id match, otherwise email match
           const profile = profiles.find((p: any) => p.id === sbUser.id) || profiles[0];
 
-          // Priority 1: Respect the role and tier explicitly set in public.profiles!
+          // Priority 1: Respect the role explicitly set in public.profiles!
           if (profile.role) {
             role = profile.role as UserRole;
           }
-          if (profile.tier) {
+          if (activeLicense && role !== 'admin') {
+            tier = activeLicense.tier;
+            // Mirror active license to profiles
+            if (profile.tier !== tier) {
+              supabase.from('profiles').update({ tier, updated_at: new Date().toISOString() }).eq('email', email);
+            }
+          } else if (profile.tier) {
             tier = profile.tier as UserTier;
           }
           if (profile.name) {
@@ -109,6 +132,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
+    // Enforce subscription duration & expiration
+    if (tier !== 'free' && role !== 'admin' && tierExpiresAt) {
+      if (new Date(tierExpiresAt).getTime() < Date.now()) {
+        tier = 'free';
+        tierExpiresAt = null;
+        if (supabase) {
+          supabase.from('profiles').update({ tier: 'free', updated_at: new Date().toISOString() }).eq('email', email);
+          supabase.auth.updateUser({ data: { tier: 'free', tierExpiresAt: null } }).catch(() => {});
+        }
+      }
+    }
+
     const appUser: User = {
       id: sbUser.id,
       name,
@@ -116,6 +151,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role,
       tier,
       avatarUrl,
+      tierExpiresAt: tier === 'free' ? null : tierExpiresAt,
+      activeRedeemedCode: tier === 'free' ? null : activeRedeemedCode,
       createdAt: sbUser.created_at || new Date().toISOString(),
     };
 
@@ -175,16 +212,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // 1. If Supabase is configured, listen to real auth changes
     if (isCloud && supabase) {
-      const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
           const freshUser = await getFreshUser();
           const targetSbUser = freshUser || session.user;
           const appUser = await resolveUserProfile(targetSbUser);
           setUser(appUser);
           db.setCurrentUser(appUser);
-        } else {
-          setUser(null);
+        } else if (event === 'SIGNED_OUT') {
+          // Explicit sign out triggered
+          db.clearActiveLicenseSession();
           db.setCurrentUser(null);
+          setUser(null);
+        } else {
+          // Preserves active local session or redeemed key session across page reloads
+          const current = db.getCurrentUser();
+          if (current) {
+            setUser(current);
+          } else {
+            setUser(null);
+          }
         }
       });
 
@@ -402,32 +449,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Activate Pro/Enterprise with a single-use or team redemption code
+   * Activate Pro/Enterprise with a single-use or team redemption code with duration & session preservation
    */
-  const activateLicenseKey = (key: string): { success: boolean; tier?: UserTier; error?: string; isTeamCode?: boolean; remainingUses?: number } => {
+  const activateLicenseKey = (key: string): {
+    success: boolean;
+    tier?: UserTier;
+    error?: string;
+    isTeamCode?: boolean;
+    remainingUses?: number;
+    durationDays?: number;
+    tierExpiresAt?: string | null;
+  } => {
     const cleanKey = key.trim().toUpperCase();
     const result = db.redeemLicenseCode(cleanKey, user?.email);
 
     if (result.success && result.tier) {
       const activeTier: UserTier = result.tier;
+      const tierExpiresAt = result.tierExpiresAt ?? null;
       const activeUser: User = user
-        ? { ...user, tier: activeTier }
+        ? {
+            ...user,
+            tier: activeTier,
+            tierExpiresAt,
+            activeRedeemedCode: cleanKey,
+          }
         : {
             id: `pro_license_${Date.now()}`,
             name: 'Pro License Member',
             email: 'pro-member@strixdevs.com',
             role: 'user',
             tier: activeTier,
+            tierExpiresAt,
+            activeRedeemedCode: cleanKey,
             createdAt: new Date().toISOString(),
           };
 
       setUser(activeUser);
       db.setCurrentUser(activeUser);
+      db.saveUserProfile(activeUser);
+      db.updateUserTier(activeUser.id, activeTier, tierExpiresAt, cleanKey);
+
+      // Persist to Supabase so it NEVER vanishes on page reload / refresh
+      if (isCloud && supabase) {
+        // 1. Update public.profiles
+        supabase
+          .from('profiles')
+          .update({
+            tier: activeTier,
+            updated_at: new Date().toISOString(),
+          })
+          .or(`id.eq.${activeUser.id},email.ilike.${activeUser.email.toLowerCase().trim()}`)
+          .then(({ error }) => {
+            if (error) console.warn('[Strix Auth] Profile tier update notice:', error);
+          });
+
+        // 2. Update Supabase Auth user_metadata
+        supabase.auth
+          .updateUser({
+            data: {
+              tier: activeTier,
+              tierExpiresAt,
+              activeRedeemedCode: cleanKey,
+            },
+          })
+          .catch(() => {});
+      }
+
       return {
         success: true,
         tier: activeTier,
         isTeamCode: result.isTeamCode,
         remainingUses: result.remainingUses,
+        durationDays: result.durationDays,
+        tierExpiresAt,
       };
     }
 

@@ -24,6 +24,7 @@ import { db } from '../../services/db';
 import { isSupabaseConfigured } from '../../services/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { playTactileClick } from '../../utils/audioFeedback';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 export const UserManager: React.FC = () => {
   const { user: currentUser, updateUserRole: updateAuthUserRole } = useAuth();
@@ -36,6 +37,7 @@ export const UserManager: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   // Add User Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -55,7 +57,7 @@ export const UserManager: React.FC = () => {
     try {
       const fetched = await db.syncUsersFromSupabase();
       setUsers(fetched);
-      showNotice(`Successfully synchronized ${fetched.length} users with Supabase public.profiles`);
+      showNotice(`Successfully synchronized ${fetched.length} users with cloud directory`);
     } catch {
       showNotice('Sync finished (cached mode active)', 'success');
     } finally {
@@ -113,11 +115,7 @@ export const UserManager: React.FC = () => {
     if (updated) {
       await updateAuthUserRole(targetUser.id, newRoleValue);
       setUsers(db.getUsers());
-      showNotice(
-        `Updated ${targetUser.email} role to ${newRoleValue.toUpperCase()}${
-          isCloud ? ' (persisted to Supabase public.profiles)' : ''
-        }`
-      );
+      showNotice(`Updated ${targetUser.email} role to ${newRoleValue.toUpperCase()}`);
     }
   };
 
@@ -129,11 +127,7 @@ export const UserManager: React.FC = () => {
     const updated = db.updateUserTier(targetUser.id, newTierValue);
     if (updated) {
       setUsers(db.getUsers());
-      showNotice(
-        `Updated ${targetUser.email} tier to ${newTierValue.toUpperCase()}${
-          isCloud ? ' (persisted to Supabase public.profiles)' : ''
-        }`
-      );
+      showNotice(`Updated ${targetUser.email} tier to ${newTierValue.toUpperCase()}`);
     }
   };
 
@@ -144,12 +138,7 @@ export const UserManager: React.FC = () => {
       showNotice('Cannot delete your own active account.', 'error');
       return;
     }
-
-    if (window.confirm(`Are you sure you want to delete user "${targetUser.email}"? This will remove their profile and access.`)) {
-      db.deleteUser(targetUser.id);
-      setUsers(db.getUsers());
-      showNotice(`User ${targetUser.email} removed.`);
-    }
+    setUserToDelete(targetUser);
   };
 
   // Add new user
@@ -176,9 +165,7 @@ export const UserManager: React.FC = () => {
     setNewEmail('');
     setNewRole('user');
     setNewTier('free');
-    showNotice(
-      `Created user ${newEmail}${isCloud ? ' and synced to Supabase public.profiles' : ''}`
-    );
+    showNotice(`Created user ${newEmail}`);
   };
 
   const copyToClipboard = (text: string) => {
@@ -204,12 +191,12 @@ export const UserManager: React.FC = () => {
               {isCloud && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   <Database className="w-3 h-3" />
-                  Supabase profiles synced
+                  Cloud Synchronized
                 </span>
               )}
             </div>
             <p className="text-xs text-zinc-400 mt-1">
-              View registered users, promote/demote administrator privileges, configure subscription tiers, and mirror directly into PostgreSQL <code className="text-zinc-300">public.profiles</code>.
+              View registered users, promote or demote administrator privileges, and configure member subscription tiers.
             </p>
           </div>
 
@@ -220,7 +207,7 @@ export const UserManager: React.FC = () => {
               className="px-3.5 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/[0.08] text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-indigo-400' : ''}`} />
-              <span>{isSyncing ? 'Syncing...' : 'Sync with Supabase'}</span>
+              <span>{isSyncing ? 'Syncing...' : 'Sync Directory'}</span>
             </button>
 
             <button
@@ -640,6 +627,25 @@ export const UserManager: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Custom Confirmation Modal for Deleting User */}
+      <ConfirmModal
+        isOpen={!!userToDelete}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={() => {
+          if (userToDelete) {
+            db.deleteUser(userToDelete.id);
+            setUsers(db.getUsers());
+            showNotice(`User ${userToDelete.email} removed.`);
+            setUserToDelete(null);
+          }
+        }}
+        title="Delete User Account"
+        message={`Are you sure you want to permanently delete user "${userToDelete?.email}"? This will remove their profile, permissions, and vault data.`}
+        confirmLabel="Delete User"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
     </div>
   );
 };

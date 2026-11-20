@@ -12,6 +12,7 @@ import {
   Key,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import type { QRDesignOptions, BulkQRItem } from '../../types';
 import { parseCSVInput, generateSingleQRPNG, batchDownloadZip } from '../../utils/bulkQREngine';
 import { playTactileClick, playVictoryFanfare } from '../../utils/audioFeedback';
@@ -40,6 +41,7 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design, onOpenPric
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
   const [previewItem, setPreviewItem] = useState<BulkQRItem | null>(null);
+  const [errorModalMsg, setErrorModalMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleParse = (textToParse: string) => {
@@ -87,7 +89,7 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design, onOpenPric
       link.download = `${item.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.png`;
       link.click();
     } catch {
-      alert(`Could not generate single QR for ${item.title}`);
+      setErrorModalMsg(`Could not generate single QR for ${item.title}`);
     }
   };
 
@@ -96,7 +98,7 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design, onOpenPric
       const { dataUrl } = await generateSingleQRPNG(item.payload, design);
       setPreviewItem({ ...item, dataUrl });
     } catch {
-      alert('Could not render preview');
+      setErrorModalMsg('Could not render matrix preview.');
     }
   };
 
@@ -119,7 +121,7 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design, onOpenPric
       playVictoryFanfare();
     } catch (e) {
       console.error(e);
-      alert('Error generating batch zip archive.');
+      setErrorModalMsg('Error generating batch zip archive. Please verify payloads.');
     } finally {
       setIsProcessing(false);
       setProgress(null);
@@ -426,6 +428,17 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design, onOpenPric
         </div>
       </div>
       )}
+
+      {/* Bulk Generator Notice Modal */}
+      <ConfirmModal
+        isOpen={!!errorModalMsg}
+        title="Batch Operation Notice"
+        message={errorModalMsg || ''}
+        confirmText="Understood"
+        variant="warning"
+        onClose={() => setErrorModalMsg(null)}
+        onConfirm={() => setErrorModalMsg(null)}
+      />
     </div>
   );
 };

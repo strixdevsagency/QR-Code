@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import type { SavedQRCode } from '../../types';
 import { Button } from '../ui/Button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { MiniQRThumbnail } from './MiniQRThumbnail';
 import { playTactileClick, playVictoryFanfare } from '../../utils/audioFeedback';
 
@@ -44,6 +45,7 @@ export const SavedQRList: React.FC<SavedQRListProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [qrToDelete, setQrToDelete] = useState<{ id: string; title: string } | null>(null);
 
   // Filter & sort logic
   const filteredQRs = useMemo(() => {
@@ -478,9 +480,7 @@ export const SavedQRList: React.FC<SavedQRListProps> = ({
                   type="button"
                   onClick={() => {
                     playTactileClick();
-                    if (window.confirm(`Delete "${qr.title}" from your vault?`)) {
-                      onDeleteQR(qr.id);
-                    }
+                    setQrToDelete({ id: qr.id, title: qr.title });
                   }}
                   className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition cursor-pointer"
                   title="Delete from Vault"
@@ -528,7 +528,14 @@ export const SavedQRList: React.FC<SavedQRListProps> = ({
                         <Button variant="outline" size="sm" onClick={() => handleQuickDownload(qr, 'png')}>
                           PNG
                         </Button>
-                        <Button variant="danger" size="sm" onClick={() => onDeleteQR(qr.id)}>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => {
+                            playTactileClick();
+                            setQrToDelete({ id: qr.id, title: qr.title });
+                          }}
+                        >
                           ✕
                         </Button>
                       </div>
@@ -540,6 +547,22 @@ export const SavedQRList: React.FC<SavedQRListProps> = ({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!qrToDelete}
+        title="Delete QR from Vault"
+        message={`Are you sure you want to delete "${qrToDelete?.title}" from your cloud matrix vault? This action cannot be undone.`}
+        confirmText="Delete QR"
+        variant="danger"
+        onClose={() => setQrToDelete(null)}
+        onConfirm={() => {
+          if (qrToDelete) {
+            onDeleteQR(qrToDelete.id);
+            setQrToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 };

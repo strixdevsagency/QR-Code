@@ -18,6 +18,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
   const [password, setPassword] = useState('');
   const [licenseKey, setLicenseKey] = useState('');
   const [keySuccess, setKeySuccess] = useState(false);
+  const [keySuccessMsg, setKeySuccessMsg] = useState<string | null>(null);
   const [resetSentEmail, setResetSentEmail] = useState<string | null>(null);
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -38,12 +39,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
       const res = activateLicenseKey(licenseKey.trim());
       if (res.success) {
         playVictoryFanfare();
+        const durationText = res.durationDays && res.durationDays > 0
+          ? `${res.durationDays} Days Session Active (${res.tier?.toUpperCase()} Tier)`
+          : 'Permanent Lifetime Access Active';
+        setKeySuccessMsg(durationText);
         setKeySuccess(true);
         setTimeout(() => {
           onClose();
           setKeySuccess(false);
+          setKeySuccessMsg(null);
           setLicenseKey('');
-        }, 1200);
+        }, 1500);
       } else {
         setErrorMsg(res.error || 'Invalid license key.');
       }
@@ -188,7 +194,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
         {keySuccess && (
           <div className="mb-4 p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center gap-2.5 text-xs text-emerald-300 animate-pop-in">
             <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
-            <span>Pro Studio Activated! Redirecting...</span>
+            <div>
+              <div className="font-bold text-emerald-200">License Activated Successfully!</div>
+              <div className="text-[11px] text-emerald-300/80">{keySuccessMsg || 'Pro Studio unlocked. Session active.'}</div>
+            </div>
           </div>
         )}
 

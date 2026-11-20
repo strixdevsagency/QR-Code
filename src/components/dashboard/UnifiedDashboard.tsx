@@ -79,7 +79,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
   const [redeemModalOpen, setRedeemModalOpen] = useState(false);
   const [redeemKeyInput, setRedeemKeyInput] = useState('');
   const [redeemError, setRedeemError] = useState<string | null>(null);
-  const [redeemSuccess, setRedeemSuccess] = useState<{ isTeam?: boolean; remaining?: number; tier?: string } | null>(null);
+  const [redeemSuccess, setRedeemSuccess] = useState<{ isTeam?: boolean; remaining?: number; tier?: string; durationDays?: number } | null>(null);
 
   const refreshData = async () => {
     if (user) {
@@ -120,13 +120,14 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
         isTeam: result.isTeamCode,
         remaining: result.remainingUses,
         tier: result.tier,
+        durationDays: result.durationDays,
       });
       refreshData();
       setTimeout(() => {
         setRedeemModalOpen(false);
         setRedeemSuccess(null);
         setRedeemKeyInput('');
-      }, 2000);
+      }, 2500);
     } else {
       setRedeemError(result.error || 'Invalid code.');
     }
@@ -444,7 +445,14 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
                 {isAdmin ? 'Admin' : (user?.tier || 'Free')}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 truncate">{user?.email}</p>
+            <div className="flex items-center justify-between text-[11px] text-zinc-400 mt-0.5">
+              <p className="truncate">{user?.email}</p>
+              {user?.tierExpiresAt && (
+                <span className="text-[9px] font-mono text-emerald-400 shrink-0 ml-1">
+                  {Math.max(0, Math.ceil((new Date(user.tierExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))}d left
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -955,12 +963,17 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
               )}
 
               {redeemSuccess && (
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2.5">
                   <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>
-                    Successfully unlocked <strong>{(redeemSuccess.tier || 'PRO').toUpperCase()}</strong>!{' '}
-                    {redeemSuccess.isTeam && `(${redeemSuccess.remaining} seats remaining)`}
-                  </span>
+                  <div>
+                    <p className="font-semibold text-white">
+                      Successfully unlocked <strong>{(redeemSuccess.tier || 'PRO').toUpperCase()}</strong>!
+                    </p>
+                    <p className="text-[11px] text-emerald-400 mt-0.5">
+                      Session duration: {redeemSuccess.durationDays === 0 ? 'Lifetime permanent access' : `${redeemSuccess.durationDays || 30} days active access`}
+                      {redeemSuccess.isTeam && ` · (${redeemSuccess.remaining} team seats remaining)`}
+                    </p>
+                  </div>
                 </div>
               )}
 

@@ -15,12 +15,14 @@ import {
 } from 'lucide-react';
 import { db } from '../../services/db';
 import type { SponsorshipLead, SponsorStatus } from '../../types';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { playTactileClick, playVictoryFanfare } from '../../utils/audioFeedback';
 
 export const SponsorCRM: React.FC = () => {
   const [leads, setLeads] = useState<SponsorshipLead[]>(() => db.getLeads());
   const [statusFilter, setStatusFilter] = useState<'all' | SponsorStatus>('all');
   const [search, setSearch] = useState('');
+  const [leadToDelete, setLeadToDelete] = useState<{ id: string; name: string; company: string } | null>(null);
 
   const refreshLeads = () => {
     setLeads(db.getLeads());
@@ -32,12 +34,9 @@ export const SponsorCRM: React.FC = () => {
     refreshLeads();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (lead: SponsorshipLead) => {
     playTactileClick();
-    if (window.confirm('Delete this corporate sponsorship lead?')) {
-      db.deleteLead(id);
-      refreshLeads();
-    }
+    setLeadToDelete({ id: lead.id, name: lead.name, company: lead.company });
   };
 
   // Manually log incoming partnership inquiry for pipeline tracking
@@ -293,7 +292,7 @@ export const SponsorCRM: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => handleDelete(lead.id)}
+                  onClick={() => handleDelete(lead)}
                   className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition cursor-pointer"
                   title="Delete Lead"
                 >
@@ -304,6 +303,23 @@ export const SponsorCRM: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!leadToDelete}
+        title="Delete Partnership Lead"
+        message={`Delete corporate sponsorship lead for "${leadToDelete?.name}" (${leadToDelete?.company})?`}
+        confirmText="Delete Lead"
+        variant="danger"
+        onClose={() => setLeadToDelete(null)}
+        onConfirm={() => {
+          if (leadToDelete) {
+            db.deleteLead(leadToDelete.id);
+            refreshLeads();
+            setLeadToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 };

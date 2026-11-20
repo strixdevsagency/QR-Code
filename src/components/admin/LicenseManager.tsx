@@ -18,9 +18,10 @@ import {
   X,
 } from 'lucide-react';
 import { db } from '../../services/db';
-import { LicenseCode, UserTier } from '../../types';
+import { LicenseCode, UserTier, LicenseDuration } from '../../types';
 import { Button } from '../ui/Button';
 import { Input, Textarea } from '../ui/Input';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { playTactileClick, playVictoryFanfare } from '../../utils/audioFeedback';
 
 export const LicenseManager: React.FC = () => {
@@ -28,17 +29,20 @@ export const LicenseManager: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [codeToDelete, setCodeToDelete] = useState<string | null>(null);
 
   // New code form state
   const [formData, setFormData] = useState({
     code: '',
     tier: 'pro' as UserTier,
+    duration: '1_month' as LicenseDuration,
+    durationDays: 30,
     isTeam: false,
     teamSeats: 5,
     customerName: '',
     customerEmail: '',
     notes: '',
-    expiresInDays: 0, // 0 = never
+    expiresInDays: 0, // 0 = code voucher never expires
   });
 
   const refreshCodes = () => {
@@ -59,16 +63,26 @@ export const LicenseManager: React.FC = () => {
     setFormData((prev) => ({ ...prev, code: `${prefix}-${rand}` }));
   };
 
-  const handleOpenCreateModal = (initialTier?: UserTier, initialEmail?: string, initialName?: string, initialSeats?: number) => {
+  const handleOpenCreateModal = (
+    initialTier?: UserTier,
+    initialEmail?: string,
+    initialName?: string,
+    initialSeats?: number,
+    initialDuration?: LicenseDuration,
+    initialDurationDays?: number
+  ) => {
     playTactileClick();
     const tier = initialTier || 'pro';
     const isTeam = (initialSeats || 1) > 1;
     const prefix = isTeam ? 'STRIX-TEAM' : tier === 'enterprise' ? 'STRIX-ENT' : 'STRIX-PRO';
     const rand = Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+    const durationDays = initialDurationDays !== undefined ? initialDurationDays : initialDuration === '1_year' ? 365 : initialDuration === '7_days' ? 7 : initialDuration === 'lifetime' ? 0 : 30;
 
     setFormData({
       code: `${prefix}-${rand}`,
       tier,
+      duration: initialDuration || '1_month',
+      durationDays,
       isTeam,
       teamSeats: initialSeats || 5,
       customerName: initialName || '',
@@ -95,6 +109,8 @@ export const LicenseManager: React.FC = () => {
     db.createLicenseCode({
       code: formData.code.trim().toUpperCase(),
       tier: formData.tier,
+      duration: formData.duration,
+      durationDays: formData.durationDays,
       maxUses,
       customerName: formData.customerName.trim() || undefined,
       customerEmail: formData.customerEmail.trim() || undefined,
@@ -115,11 +131,8 @@ export const LicenseManager: React.FC = () => {
   };
 
   const handleDeleteCode = (id: string) => {
-    if (confirm('Are you sure you want to delete this license code permanently?')) {
-      playTactileClick();
-      db.deleteLicenseCode(id);
-      refreshCodes();
-    }
+    playTactileClick();
+    setCodeToDelete(id);
   };
 
   const filteredCodes = codes.filter((c) => {
@@ -253,6 +266,17 @@ export const LicenseManager: React.FC = () => {
                     >
                       {isTeam && <Users className="w-2.5 h-2.5" />}
                       {isTeam ? `Team (${codeItem.maxUses} Seats)` : 'Single Use (1 Seat)'}
+                    </span>
+
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-800/80 text-zinc-300 border border-white/10 flex items-center gap-1 font-medium">
+                      <Clock className="w-2.5 h-2.5 text-[#38bdf8]" />
+                      {codeItem.durationDays === 0 || codeItem.duration === 'lifetime'
+                        ? 'Lifetime'
+                        : codeItem.durationDays === 7 || codeItem.duration === '7_days'
+                        ? '7 Days'
+                        : codeItem.durationDays === 365 || codeItem.duration === '1_year'
+                        ? '1 Year'
+                        : `${codeItem.durationDays || 30} Days`}
                     </span>
 
                     {!codeItem.isActive && (
@@ -394,6 +418,44 @@ export const LicenseManager: React.FC = () => {
                 </div>
               </div>
 
+              {/* Access Duration / Session Validity */}
+              <div>
+                <label className="text-xs font-semibold text-zinc-300 block mb-1.5">
+                  Subscription Validity Period (Session Duration)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: '7_days', label: '7 Days', desc: 'Short Trial', days: 7 },
+                    { id: '1_month', label: '1 Month', desc: '30 Days Standard', days: 30 },
+                    { id: '1_year', label: '1 Year', desc: '365 Days Annual', days: 365 },
+                    { id: 'lifetime', label: 'Lifetime', desc: 'Permanent', days: 0 },
+                  ].map((dur) => (
+                    <button
+                      key={dur.id}
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          duration: dur.id as LicenseDuration,
+                          durationDays: dur.days,
+                        }))
+                      }
+                      className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                        formData.durationDays === dur.days
+                          ? 'bg-[#38bdf8]/15 border-[#38bdf8]/40 text-[#38bdf8] shadow-md shadow-[#38bdf8]/10'
+                          : 'bg-zinc-950 border-white/[0.08] text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      <div className="text-xs font-bold text-white flex items-center gap-1">
+                        <Clock className={`w-3 h-3 ${formData.durationDays === dur.days ? 'text-[#38bdf8]' : 'text-zinc-500'}`} />
+                        <span>{dur.label}</span>
+                      </div>
+                      <div className="text-[10px] text-zinc-500 mt-0.5">{dur.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Single Use vs Team Seat Toggle */}
               <div className="p-3.5 rounded-xl bg-zinc-950/80 border border-white/[0.08] space-y-3">
                 <div className="flex items-center justify-between">
@@ -518,6 +580,24 @@ export const LicenseManager: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Code Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!codeToDelete}
+        onClose={() => setCodeToDelete(null)}
+        onConfirm={() => {
+          if (codeToDelete) {
+            db.deleteLicenseCode(codeToDelete);
+            refreshCodes();
+            setCodeToDelete(null);
+          }
+        }}
+        title="Delete License Key"
+        message="Are you sure you want to permanently delete this license code? Any unredeemed vouchers with this key will become invalid."
+        confirmLabel="Delete Code"
+        cancelLabel="Cancel"
+        variant="danger"
+      />
     </div>
   );
 };

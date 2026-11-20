@@ -10,6 +10,7 @@ import type {
   PackageOrder,
   PackageOrderStatus,
   UserTier,
+  ActiveLicenseSession,
 } from '../types';
 import {
   DEFAULT_USERS,
@@ -39,6 +40,7 @@ const CURRENT_USER_KEY = 'strix_current_user_v3';
 const PACKAGES_KEY = 'strix_packages_v3';
 const CODES_KEY = 'strix_codes_v3';
 const ORDERS_KEY = 'strix_orders_v3';
+const LICENSE_SESSION_KEY = 'strix_license_session_v3';
 
 async function syncToSupabase(promiseLike: any): Promise<any> {
   if (!promiseLike) return null;
@@ -74,9 +76,68 @@ class DatabaseService {
     }
   }
 
+  // --- License Session Persistence ---
+  getActiveLicenseSession(): ActiveLicenseSession | null {
+    const session = this.getItem<ActiveLicenseSession | null>(LICENSE_SESSION_KEY, null);
+    if (!session) return null;
+    if (session.tierExpiresAt) {
+      if (new Date(session.tierExpiresAt).getTime() < Date.now()) {
+        this.clearActiveLicenseSession();
+        return null;
+      }
+    }
+    return session;
+  }
+
+  saveActiveLicenseSession(session: ActiveLicenseSession): void {
+    this.setItem(LICENSE_SESSION_KEY, session);
+  }
+
+  clearActiveLicenseSession(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem(LICENSE_SESSION_KEY);
+    } catch {
+      // Ignore
+    }
+  }
+
   // --- Auth & Users ---
   getCurrentUser(): User | null {
-    return this.getItem<User | null>(CURRENT_USER_KEY, null);
+    let user = this.getItem<User | null>(CURRENT_USER_KEY, null);
+    const licenseSession = this.getActiveLicenseSession();
+
+    if (licenseSession) {
+      if (!user) {
+        user = {
+          id: 'usr_pro_session',
+          email: licenseSession.email || 'pro-member@strixdevs.com',
+          name: 'Pro License Member',
+          role: 'user',
+          tier: licenseSession.tier,
+          tierExpiresAt: licenseSession.tierExpiresAt,
+          activeRedeemedCode: licenseSession.code,
+          createdAt: licenseSession.activatedAt,
+        };
+        this.setItem(CURRENT_USER_KEY, user);
+      } else if (user.role !== 'admin') {
+        user.tier = licenseSession.tier;
+        user.tierExpiresAt = licenseSession.tierExpiresAt;
+        user.activeRedeemedCode = licenseSession.code;
+        this.setItem(CURRENT_USER_KEY, user);
+      }
+    } else if (user) {
+      // Check if subscription has expired
+      if (user.tier && user.tier !== 'free' && user.role !== 'admin' && user.tierExpiresAt) {
+        if (new Date(user.tierExpiresAt).getTime() < Date.now()) {
+          user.tier = 'free';
+          user.tierExpiresAt = null;
+          this.setItem(CURRENT_USER_KEY, user);
+          this.updateUserTier(user.id, 'free', null);
+        }
+      }
+    }
+    return user;
   }
 
   setCurrentUser(user: User | null): void {
@@ -132,16 +193,19 @@ class DatabaseService {
 
     if (isSupabaseConfigured() && supabase) {
       syncToSupabase(
-        supabase.from('profiles').upsert({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          tier: user.tier || 'free',
-          avatar_url: user.avatarUrl || null,
-          created_at: user.createdAt,
-          updated_at: new Date().toISOString(),
-        })
+        supabase.from('profiles').upsert(
+          {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            tier: user.tier || 'free',
+            avatar_url: user.avatarUrl || null,
+            created_at: user.createdAt,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'email' }
+        )
       );
     }
     return user;
@@ -157,14 +221,17 @@ class DatabaseService {
       this.setItem(USERS_KEY, users);
       if (isSupabaseConfigured() && supabase) {
         syncToSupabase(
-          supabase.from('profiles').upsert({
-            id: existing.id,
-            email: existing.email,
-            name: existing.name,
-            role: existing.role,
-            tier: existing.tier || 'free',
-            updated_at: new Date().toISOString(),
-          })
+          supabase.from('profiles').upsert(
+            {
+              id: existing.id,
+              email: existing.email,
+              name: existing.name,
+              role: existing.role,
+              tier: existing.tier || 'free',
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'email' }
+          )
         );
       }
       return existing;
@@ -184,15 +251,18 @@ class DatabaseService {
 
     if (isSupabaseConfigured() && supabase) {
       syncToSupabase(
-        supabase.from('profiles').upsert({
-          id: newUser.id,
-          email: newUser.email,
-          name: newUser.name,
-          role: newUser.role,
-          tier: newUser.tier,
-          created_at: newUser.createdAt,
-          updated_at: new Date().toISOString(),
-        })
+        supabase.from('profiles').upsert(
+          {
+            id: newUser.id,
+            email: newUser.email,
+            name: newUser.name,
+            role: newUser.role,
+            tier: newUser.tier,
+            created_at: newUser.createdAt,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'email' }
+        )
       );
     }
     return newUser;
@@ -260,15 +330,18 @@ class DatabaseService {
 
     if (isSupabaseConfigured() && supabase) {
       syncToSupabase(
-        supabase.from('profiles').upsert({
-          id: newUser.id,
-          email: newUser.email,
-          name: newUser.name,
-          role: newUser.role,
-          tier: newUser.tier,
-          created_at: newUser.createdAt,
-          updated_at: new Date().toISOString(),
-        })
+        supabase.from('profiles').upsert(
+          {
+            id: newUser.id,
+            email: newUser.email,
+            name: newUser.name,
+            role: newUser.role,
+            tier: newUser.tier,
+            created_at: newUser.createdAt,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'email' }
+        )
       );
     }
     return newUser;
@@ -286,17 +359,27 @@ class DatabaseService {
 
   logout(): void {
     this.setItem(CURRENT_USER_KEY, null);
+    this.clearActiveLicenseSession();
   }
 
-  updateUserTier(userId: string, tier: import('../types').UserTier): User | null {
+  updateUserTier(
+    userId: string,
+    tier: import('../types').UserTier,
+    tierExpiresAt?: string | null,
+    redeemedCode?: string | null
+  ): User | null {
     const users = this.getUsers();
     const user = users.find((u) => u.id === userId);
     if (user) {
       user.tier = tier;
+      if (tierExpiresAt !== undefined) user.tierExpiresAt = tierExpiresAt;
+      if (redeemedCode !== undefined) user.activeRedeemedCode = redeemedCode;
       this.setItem(USERS_KEY, users);
-      const current = this.getCurrentUser();
-      if (current && current.id === userId) {
+      const current = this.getItem<User | null>(CURRENT_USER_KEY, null);
+      if (current && (current.id === userId || current.email.toLowerCase() === user.email.toLowerCase())) {
         current.tier = tier;
+        if (tierExpiresAt !== undefined) current.tierExpiresAt = tierExpiresAt;
+        if (redeemedCode !== undefined) current.activeRedeemedCode = redeemedCode;
         this.setCurrentUser(current);
       }
       if (isSupabaseConfigured() && supabase) {
@@ -304,21 +387,23 @@ class DatabaseService {
           supabase
             .from('profiles')
             .update({ tier, updated_at: new Date().toISOString() })
-            .eq('id', userId)
+            .or(`id.eq.${userId},email.ilike.${user.email.toLowerCase().trim()}`)
         );
       }
       return user;
     }
-    const current = this.getCurrentUser();
+    const current = this.getItem<User | null>(CURRENT_USER_KEY, null);
     if (current) {
       current.tier = tier;
+      if (tierExpiresAt !== undefined) current.tierExpiresAt = tierExpiresAt;
+      if (redeemedCode !== undefined) current.activeRedeemedCode = redeemedCode;
       this.setCurrentUser(current);
-      if (isSupabaseConfigured() && supabase) {
+      if (isSupabaseConfigured() && supabase && current.email) {
         syncToSupabase(
           supabase
             .from('profiles')
             .update({ tier, updated_at: new Date().toISOString() })
-            .eq('id', current.id)
+            .or(`id.eq.${current.id},email.ilike.${current.email.toLowerCase().trim()}`)
         );
       }
       return current;
@@ -825,10 +910,31 @@ class DatabaseService {
 
   createLicenseCode(data: Omit<LicenseCode, 'id' | 'createdAt' | 'usedCount' | 'usedByEmails'>): LicenseCode {
     const codes = this.getLicenseCodes();
+
+    let durationDays = data.durationDays;
+    if (durationDays === undefined) {
+      if (data.duration === '7_days') durationDays = 7;
+      else if (data.duration === '1_month') durationDays = 30;
+      else if (data.duration === '1_year') durationDays = 365;
+      else if (data.duration === 'lifetime') durationDays = 0;
+      else durationDays = 30;
+    }
+
+    const duration = data.duration || (durationDays === 365 ? '1_year' : durationDays === 7 ? '7_days' : durationDays === 0 ? 'lifetime' : '1_month');
+
+    // Embed [duration:Xd] tag in notes so it persists in Supabase's notes column
+    let notes = data.notes?.trim() || '';
+    if (!notes.includes('[duration:')) {
+      notes = `[duration:${durationDays}d] ${notes}`.trim();
+    }
+
     const newCode: LicenseCode = {
       ...data,
       id: `lic_${Date.now()}`,
       code: data.code.trim().toUpperCase(),
+      duration,
+      durationDays,
+      notes,
       usedCount: 0,
       usedByEmails: [],
       createdAt: new Date().toISOString(),
@@ -895,6 +1001,8 @@ class DatabaseService {
     isTeamCode?: boolean;
     remainingUses?: number;
     codeRecord?: LicenseCode;
+    durationDays?: number;
+    tierExpiresAt?: string | null;
   } {
     const cleanCode = codeStr.trim().toUpperCase();
     if (!cleanCode) {
@@ -912,6 +1020,8 @@ class DatabaseService {
           id: `lic_master_${Date.now()}`,
           code: cleanCode,
           tier: 'pro',
+          duration: '1_month',
+          durationDays: 30,
           maxUses: 9999,
           usedCount: 0,
           usedByEmails: [],
@@ -935,7 +1045,37 @@ class DatabaseService {
       return { success: false, error: 'This license key has expired.' };
     }
 
+    // Determine the duration of the granted tier
+    let durationDays = found.durationDays;
+    if (durationDays === undefined) {
+      if (found.duration === '7_days') durationDays = 7;
+      else if (found.duration === '1_month') durationDays = 30;
+      else if (found.duration === '1_year') durationDays = 365;
+      else if (found.duration === 'lifetime') durationDays = 0;
+      else {
+        const match = found.notes?.match(/\[duration:(\d+)d\]/);
+        durationDays = match ? parseInt(match[1], 10) : 30;
+      }
+    }
+
+    const tierExpiresAt = durationDays > 0
+      ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString()
+      : null;
+
     if (found.usedCount >= found.maxUses) {
+      // Check if user already claimed this specific team code
+      const email = userEmail?.trim().toLowerCase() || '';
+      if (email && found.usedByEmails && found.usedByEmails.map((e) => e.toLowerCase()).includes(email)) {
+        return {
+          success: true,
+          tier: found.tier,
+          isTeamCode: found.maxUses > 1,
+          remainingUses: Math.max(0, found.maxUses - found.usedCount),
+          codeRecord: found,
+          durationDays,
+          tierExpiresAt,
+        };
+      }
       return {
         success: false,
         error: found.maxUses === 1
@@ -947,12 +1087,21 @@ class DatabaseService {
     // Check if user already claimed this specific team code
     const email = userEmail?.trim().toLowerCase() || '';
     if (email && found.usedByEmails && found.usedByEmails.map((e) => e.toLowerCase()).includes(email)) {
+      this.saveActiveLicenseSession({
+        code: cleanCode,
+        tier: found.tier,
+        tierExpiresAt,
+        activatedAt: new Date().toISOString(),
+        email: userEmail,
+      });
       return {
         success: true,
         tier: found.tier,
         isTeamCode: found.maxUses > 1,
         remainingUses: found.maxUses - found.usedCount,
         codeRecord: found,
+        durationDays,
+        tierExpiresAt,
       };
     }
 
@@ -966,12 +1115,22 @@ class DatabaseService {
       usedByEmails: updatedEmails,
     });
 
+    this.saveActiveLicenseSession({
+      code: cleanCode,
+      tier: found.tier,
+      tierExpiresAt,
+      activatedAt: new Date().toISOString(),
+      email: userEmail,
+    });
+
     return {
       success: true,
       tier: found.tier,
       isTeamCode: found.maxUses > 1,
       remainingUses: remaining,
       codeRecord: { ...found, usedCount: updatedCount, usedByEmails: updatedEmails },
+      durationDays,
+      tierExpiresAt,
     };
   }
 

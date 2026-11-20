@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
-import { Lock, AlertCircle, Key, CheckCircle2 } from 'lucide-react';
+import { Lock, AlertCircle, Key, CheckCircle2, ArrowLeft, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
-import { playVictoryFanfare } from '../utils/audioFeedback';
+import { playVictoryFanfare, playTactileClick } from '../utils/audioFeedback';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultMode?: 'login' | 'register' | 'key';
+  defaultMode?: 'login' | 'register' | 'key' | 'forgot';
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMode = 'login' }) => {
-  const { login, register, loginWithOAuth, activateLicenseKey } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register' | 'key'>(defaultMode);
+  const { login, register, loginWithOAuth, activateLicenseKey, resetPassword, updatePassword } = useAuth();
+  const [mode, setMode] = useState<'login' | 'register' | 'key' | 'forgot' | 'reset'>(defaultMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [licenseKey, setLicenseKey] = useState('');
   const [keySuccess, setKeySuccess] = useState(false);
+  const [resetSentEmail, setResetSentEmail] = useState<string | null>(null);
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +29,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
     e.preventDefault();
     setErrorMsg(null);
 
-    // Mode: Key Activation (No login/account needed)
+    // Mode: Key Activation
     if (mode === 'key') {
       if (!licenseKey.trim()) {
         setErrorMsg('Please enter your license key.');
@@ -48,6 +50,55 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
       return;
     }
 
+    // Mode: Forgot Password
+    if (mode === 'forgot') {
+      if (!email.trim()) {
+        setErrorMsg('Please enter your email address.');
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await resetPassword(email);
+        if (res.success) {
+          setResetSentEmail(email);
+        } else {
+          setErrorMsg(res.error || 'Failed to send recovery email. Please check the address.');
+        }
+      } catch {
+        setErrorMsg('Unable to reach auth server. Please check your network.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Mode: Reset New Password
+    if (mode === 'reset') {
+      if (!password || password.length < 6) {
+        setErrorMsg('Password must be at least 6 characters.');
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await updatePassword(password);
+        if (res.success) {
+          setPasswordUpdated(true);
+          setTimeout(() => {
+            setMode('login');
+            setPasswordUpdated(false);
+          }, 1500);
+        } else {
+          setErrorMsg(res.error || 'Failed to update password.');
+        }
+      } catch {
+        setErrorMsg('Unable to update password. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Mode: Login / Register
     if (!email) return;
     setLoading(true);
 
@@ -76,7 +127,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
       if (res.success) {
         onClose();
       } else {
-        setErrorMsg(res.error || `Failed to sign in with Google`);
+        setErrorMsg(res.error || 'Failed to sign in with Google');
       }
     } finally {
       setLoading(false);
@@ -86,21 +137,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-md bg-zinc-900 border border-white/[0.1] rounded-2xl p-6 sm:p-7 shadow-2xl relative">
-        
         {/* Header */}
         <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/[0.08]">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h3 className="text-base font-bold text-white tracking-tight">
-                {mode === 'key' ? 'Activate Pro with License Key' : mode === 'login' ? 'Sign in to Strix QR' : 'Create Strix QR Account'}
+                {mode === 'key'
+                  ? 'Activate Pro with License Key'
+                  : mode === 'forgot'
+                  ? 'Reset Your Password'
+                  : mode === 'reset'
+                  ? 'Set New Password'
+                  : mode === 'login'
+                  ? 'Sign in to Strix QR'
+                  : 'Create Strix QR Account'}
               </h3>
-              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[#38bdf8]/10 text-[#38bdf8] border border-[#38bdf8]/20 font-medium">
                 {mode === 'key' ? <Key className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
                 {mode === 'key' ? 'Zero Login' : 'Secure ID'}
               </span>
             </div>
             <p className="text-xs text-zinc-400">
-              {mode === 'key' ? 'Enter the license key received via invoice or email to unlock Pro.' : 'Save your generated QR codes and re-download print formats anytime.'}
+              {mode === 'key'
+                ? 'Enter the license key received via invoice or email to unlock Pro.'
+                : mode === 'forgot'
+                ? 'Enter your registered email and we will send you a password recovery link.'
+                : mode === 'reset'
+                ? 'Choose a secure new password for your account.'
+                : 'Save your generated QR codes and re-download print formats anytime.'}
             </p>
           </div>
           <button
@@ -128,9 +192,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
           </div>
         )}
 
-        {mode !== 'key' && (
+        {/* Success Alert for Password Reset Email */}
+        {resetSentEmail && (
+          <div className="mb-4 p-4 rounded-xl bg-[#38bdf8]/10 border border-[#38bdf8]/30 flex flex-col gap-2 text-xs text-zinc-200 animate-pop-in">
+            <div className="flex items-center gap-2 text-[#38bdf8] font-bold">
+              <Mail className="w-4 h-4" />
+              <span>Password Recovery Email Sent</span>
+            </div>
+            <p className="text-[11px] text-zinc-400">
+              We sent a password reset link to <strong className="text-white">{resetSentEmail}</strong>. Follow the link in your email to reset your credentials.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setResetSentEmail(null);
+                setMode('login');
+              }}
+              className="mt-1 text-left text-[11px] text-[#38bdf8] hover:underline cursor-pointer font-semibold flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3 h-3" /> Back to Sign In
+            </button>
+          </div>
+        )}
+
+        {/* Success Alert for Password Updated */}
+        {passwordUpdated && (
+          <div className="mb-4 p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center gap-2.5 text-xs text-emerald-300 animate-pop-in">
+            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+            <span>Password updated successfully! Redirecting to login...</span>
+          </div>
+        )}
+
+        {/* Google OAuth (only for login & register) */}
+        {(mode === 'login' || mode === 'register') && (
           <>
-            {/* Social / OAuth Logins */}
             <div className="mb-4">
               <button
                 type="button"
@@ -159,138 +254,202 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
           </>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          {mode === 'key' ? (
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                Pro Activation Key / Voucher
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="STRIX-PRO-VIP"
-                value={licenseKey}
-                onChange={(e) => setLicenseKey(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs font-mono tracking-wider focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 transition uppercase"
-              />
-              <span className="text-[11px] text-zinc-500 block mt-1">
-                Enter key to immediately activate Pro studio on this device without account creation.
-              </span>
-            </div>
-          ) : (
-            <>
-              {mode === 'register' && (
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Alex Vance"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition"
-                  />
-                </div>
-              )}
-
+        {!resetSentEmail && (
+          <form onSubmit={handleSubmit} className="space-y-3.5">
+            {mode === 'key' ? (
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">Email Address</label>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                  Pro Activation Key / Voucher
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="STRIX-PRO-VIP"
+                  value={licenseKey}
+                  onChange={(e) => setLicenseKey(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs font-mono tracking-wider focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 transition uppercase"
+                />
+                <span className="text-[11px] text-zinc-500 block mt-1">
+                  Enter key to immediately activate Pro studio on this device without account creation.
+                </span>
+              </div>
+            ) : mode === 'forgot' ? (
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">Account Email</label>
                 <input
                   type="email"
                   required
                   placeholder="alex@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition"
+                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 transition"
                 />
+                <span className="text-[11px] text-zinc-500 block mt-1">
+                  We will email you a secure link to reset your account password.
+                </span>
               </div>
-
+            ) : mode === 'reset' ? (
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                  Password <span className="text-zinc-500 text-[10px]">(Optional for local mode)</span>
-                </label>
+                <label className="block text-xs font-semibold text-zinc-300 mb-1">New Password</label>
                 <input
                   type="password"
+                  required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/30 transition"
+                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 transition"
                 />
               </div>
-            </>
-          )}
+            ) : (
+              <>
+                {mode === 'register' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Alex Vance"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 transition"
+                    />
+                  </div>
+                )}
 
-          <Button type="submit" variant="primary" fullWidth size="md" disabled={loading} className="font-bold">
-            {loading
-              ? 'Authenticating...'
-              : mode === 'key'
-              ? 'Activate Pro Studio'
-              : mode === 'login'
-              ? 'Sign In to Account'
-              : 'Create Free Account'}
-          </Button>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="alex@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 transition"
+                  />
+                </div>
 
-          <div className="pt-2 text-center text-xs text-zinc-400 space-y-1.5">
-            {mode === 'key' ? (
-              <p>
-                Want to sign in with account?{' '}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-zinc-300">
+                      Password <span className="text-zinc-500 text-[10px]">(Optional for local mode)</span>
+                    </label>
+                    {mode === 'login' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playTactileClick();
+                          setErrorMsg(null);
+                          setMode('forgot');
+                        }}
+                        className="text-[11px] text-[#38bdf8] hover:underline cursor-pointer font-medium"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl bg-zinc-950/70 border border-white/[0.08] text-white text-xs focus:outline-none focus:border-[#38bdf8] focus:ring-1 focus:ring-[#38bdf8]/30 transition"
+                  />
+                </div>
+              </>
+            )}
+
+            <Button type="submit" variant="primary" fullWidth size="md" disabled={loading} className="font-bold">
+              {loading
+                ? 'Processing...'
+                : mode === 'key'
+                ? 'Activate Pro Studio'
+                : mode === 'forgot'
+                ? 'Send Password Reset Link'
+                : mode === 'reset'
+                ? 'Update Password'
+                : mode === 'login'
+                ? 'Sign In to Account'
+                : 'Create Free Account'}
+            </Button>
+
+            <div className="pt-2 text-center text-xs text-zinc-400 space-y-1.5">
+              {mode === 'forgot' || mode === 'reset' ? (
                 <button
                   type="button"
                   onClick={() => {
+                    playTactileClick();
                     setErrorMsg(null);
                     setMode('login');
                   }}
-                  className="text-[#38bdf8] font-semibold hover:underline cursor-pointer"
+                  className="text-[#38bdf8] font-semibold hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto"
                 >
-                  Sign in
+                  <ArrowLeft className="w-3 h-3" /> Back to Sign In
                 </button>
-              </p>
-            ) : mode === 'login' ? (
-              <>
+              ) : mode === 'key' ? (
                 <p>
-                  Don't have an account?{' '}
+                  Want to sign in with account?{' '}
                   <button
                     type="button"
                     onClick={() => {
+                      playTactileClick();
                       setErrorMsg(null);
-                      setMode('register');
-                    }}
-                    className="text-white font-medium hover:underline cursor-pointer"
-                  >
-                    Create one free
-                  </button>
-                </p>
-                <p>
-                  Have a Pro License Key?{' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setErrorMsg(null);
-                      setMode('key');
+                      setMode('login');
                     }}
                     className="text-[#38bdf8] font-semibold hover:underline cursor-pointer"
                   >
-                    Redeem Code
+                    Sign in
                   </button>
                 </p>
-              </>
-            ) : (
-              <p>
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setErrorMsg(null);
-                    setMode('login');
-                  }}
-                  className="text-white font-medium hover:underline cursor-pointer"
-                >
-                  Sign in
-                </button>
-              </p>
-            )}
-          </div>
-        </form>
+              ) : mode === 'login' ? (
+                <>
+                  <p>
+                    Don't have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playTactileClick();
+                        setErrorMsg(null);
+                        setMode('register');
+                      }}
+                      className="text-white font-medium hover:underline cursor-pointer"
+                    >
+                      Create one free
+                    </button>
+                  </p>
+                  <p>
+                    Have a Pro License Key?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playTactileClick();
+                        setErrorMsg(null);
+                        setMode('key');
+                      }}
+                      className="text-[#38bdf8] font-semibold hover:underline cursor-pointer"
+                    >
+                      Redeem Code
+                    </button>
+                  </p>
+                </>
+              ) : (
+                <p>
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playTactileClick();
+                      setErrorMsg(null);
+                      setMode('login');
+                    }}
+                    className="text-white font-medium hover:underline cursor-pointer"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              )}
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

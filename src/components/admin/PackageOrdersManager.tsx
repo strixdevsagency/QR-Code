@@ -7,6 +7,8 @@ import {
   Users,
   Trash2,
   Search,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 import { db } from '../../services/db';
 import { PackageOrder, PackageOrderStatus, UserTier } from '../../types';
@@ -88,15 +90,15 @@ export const PackageOrdersManager: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-blue-400" />
+              <ShoppingBag className="w-5 h-5 text-[#38bdf8]" />
               Package Purchase Requests & Order CRM
             </h2>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#38bdf8]/10 text-[#38bdf8] border border-[#38bdf8]/20 font-semibold">
               Inbound Orders
             </span>
           </div>
           <p className="text-xs text-zinc-400 max-w-xl">
-            Review inbound user subscription requests. One-click issue license codes (single-user or multi-seat team packages) to activate their account.
+            Review inbound user subscription requests. One-click issue license codes (single-user or multi-seat team packages) to activate their account. Changing status to Cancelled revokes the code and reverts user tier.
           </p>
         </div>
 
@@ -107,7 +109,7 @@ export const PackageOrdersManager: React.FC = () => {
             placeholder="Search orders..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-zinc-950 border border-white/[0.08] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-zinc-950 border border-white/[0.08] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#38bdf8]"
           />
         </div>
       </div>
@@ -121,6 +123,7 @@ export const PackageOrdersManager: React.FC = () => {
         ) : (
           filteredOrders.map((ord) => {
             const isTeam = (ord.teamSeats || 1) > 1;
+            const isCancelled = ord.status === 'cancelled';
 
             return (
               <div
@@ -132,12 +135,12 @@ export const PackageOrdersManager: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-sm font-bold text-white">{ord.name}</h3>
                     <span className="text-xs text-zinc-400">•</span>
-                    <span className="text-xs font-semibold text-blue-400">{ord.planName}</span>
+                    <span className="text-xs font-semibold text-[#38bdf8]">{ord.planName}</span>
                     <span className="text-[11px] text-zinc-400">({ord.interval})</span>
-                    <span className="text-xs font-bold text-emerald-400">{ord.priceFormatted}</span>
+                    <span className="text-xs font-bold text-white font-mono">{ord.priceFormatted}</span>
 
                     {isTeam && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#38bdf8]/10 text-[#38bdf8] border border-[#38bdf8]/20">
                         <Users className="w-2.5 h-2.5" />
                         Team: {ord.teamSeats} Seats
                       </span>
@@ -145,12 +148,14 @@ export const PackageOrdersManager: React.FC = () => {
 
                     <span
                       className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                        ord.status === 'code_issued'
+                        ord.status === 'cancelled'
+                          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                          : ord.status === 'completed'
+                          ? 'bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30'
+                          : ord.status === 'code_issued'
                           ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                           : ord.status === 'contacted'
-                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                          : ord.status === 'completed'
-                          ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                          ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
                           : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                       }`}
                     >
@@ -161,11 +166,11 @@ export const PackageOrdersManager: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-400">
                     <span className="flex items-center gap-1">
                       <Mail className="w-3.5 h-3.5 text-zinc-500" />
-                      <a href={`mailto:${ord.email}`} className="text-blue-400 hover:underline">{ord.email}</a>
+                      <a href={`mailto:${ord.email}`} className="text-[#38bdf8] hover:underline">{ord.email}</a>
                     </span>
                     {ord.phoneOrWhatsapp && (
                       <span className="flex items-center gap-1">
-                        <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                        <Phone className="w-3.5 h-3.5 text-zinc-400" />
                         <span className="text-zinc-200">{ord.phoneOrWhatsapp}</span>
                       </span>
                     )}
@@ -181,12 +186,33 @@ export const PackageOrdersManager: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Issued code display if already generated */}
+                  {/* Issued code display */}
                   {ord.issuedCode && (
-                    <div className="flex items-center gap-2 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
-                      <Key className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span className="text-zinc-300">Issued Code:</span>
-                      <strong className="font-mono text-emerald-400">{ord.issuedCode}</strong>
+                    <div
+                      className={`flex items-center gap-2 p-2 rounded-xl text-xs ${
+                        isCancelled
+                          ? 'bg-rose-950/30 border border-rose-500/20 text-rose-300'
+                          : 'bg-[#38bdf8]/10 border border-[#38bdf8]/25 text-zinc-300'
+                      }`}
+                    >
+                      {isCancelled ? (
+                        <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                      ) : (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#38bdf8] shrink-0" />
+                      )}
+                      <span>Issued Code:</span>
+                      <strong className={`font-mono ${isCancelled ? 'line-through text-rose-400' : 'text-[#38bdf8]'}`}>
+                        {ord.issuedCode}
+                      </strong>
+                      <span
+                        className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded ${
+                          isCancelled
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            : 'bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/30'
+                        }`}
+                      >
+                        {isCancelled ? 'Revoked / Inactive' : 'Active Code'}
+                      </span>
                       <button
                         type="button"
                         onClick={() => handleCopyCode(ord.id, ord.issuedCode!)}
@@ -206,7 +232,7 @@ export const PackageOrdersManager: React.FC = () => {
                       variant="primary"
                       size="sm"
                       onClick={() => handleQuickIssueCode(ord)}
-                      className="font-bold cursor-pointer bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white flex items-center gap-1.5 shadow-md shadow-emerald-600/20 text-xs"
+                      className="font-bold cursor-pointer bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white flex items-center gap-1.5 shadow-md shadow-sky-500/20 text-xs"
                     >
                       <Key className="w-3.5 h-3.5" />
                       <span>Issue {isTeam ? `${ord.teamSeats}-Seat Team Code` : 'Activation Code'}</span>
@@ -217,7 +243,11 @@ export const PackageOrdersManager: React.FC = () => {
                     <select
                       value={ord.status}
                       onChange={(e) => handleUpdateStatus(ord.id, e.target.value as PackageOrderStatus)}
-                      className="px-2.5 py-1 rounded-xl bg-zinc-950 border border-white/10 text-xs text-zinc-300 focus:outline-none"
+                      className={`px-2.5 py-1 rounded-xl bg-zinc-950 border text-xs font-semibold focus:outline-none transition ${
+                        isCancelled
+                          ? 'border-rose-500/40 text-rose-300'
+                          : 'border-white/10 text-zinc-200 focus:border-[#38bdf8]'
+                      }`}
                     >
                       <option value="pending">Pending</option>
                       <option value="contacted">Contacted</option>

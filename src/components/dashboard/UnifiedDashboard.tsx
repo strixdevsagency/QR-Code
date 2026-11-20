@@ -316,13 +316,13 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
       {/* Brand & Console Header */}
       <div className="p-5 border-b border-white/[0.08] flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 border border-white/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-sky-500/20 border border-white/20">
             {isAdmin ? <Shield className="w-5 h-5 text-white" /> : <LayoutDashboard className="w-5 h-5 text-white" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-sm tracking-tight text-white">STRIX</span>
-              <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-400 font-bold border border-indigo-500/30">
+              <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded bg-[#38bdf8]/15 text-[#38bdf8] font-bold border border-[#38bdf8]/30">
                 {isAdmin ? 'ADMIN' : (user?.tier || 'FREE').toUpperCase()}
               </span>
             </div>
@@ -393,19 +393,21 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
           <h4 className="px-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-mono">
             QUICK ACTIONS
           </h4>
-          <button
-            onClick={() => {
-              playTactileClick();
-              setRedeemModalOpen(true);
-            }}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/20 transition cursor-pointer"
-          >
-            <div className="flex items-center gap-2">
-              <Key className="w-3.5 h-3.5" />
-              <span>Redeem License Key</span>
-            </div>
-            <span className="text-[10px] font-mono uppercase font-bold">Code</span>
-          </button>
+          {!isAdmin && (
+            <button
+              onClick={() => {
+                playTactileClick();
+                setRedeemModalOpen(true);
+              }}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[#38bdf8] hover:text-[#38bdf8] bg-[#38bdf8]/10 hover:bg-[#38bdf8]/15 border border-[#38bdf8]/20 transition cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Key className="w-3.5 h-3.5" />
+                <span>Redeem License Key</span>
+              </div>
+              <span className="text-[10px] font-mono uppercase font-bold">Code</span>
+            </button>
+          )}
 
           <button
             onClick={handleExportVaultBackup}
@@ -424,7 +426,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
               className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-900/40 hover:bg-zinc-900 border border-white/[0.06] hover:border-white/[0.12] transition cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <Download className="w-3.5 h-3.5 text-indigo-400" />
+                <Download className="w-3.5 h-3.5 text-[#38bdf8]" />
                 <span>Full System Audit</span>
               </div>
               <span className="text-[10px] font-mono text-zinc-400">JSON</span>
@@ -436,13 +438,13 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
       {/* Operator Card & Open Studio Footer */}
       <div className="p-4 border-t border-white/[0.08] bg-zinc-950 space-y-3">
         <div className="p-2.5 rounded-xl bg-zinc-900/70 border border-white/[0.08] flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white border border-white/20 shrink-0">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white border border-white/20 shrink-0">
             {user?.name?.[0]?.toUpperCase() || 'U'}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-white truncate">{user?.name || 'Strix Operator'}</p>
-              <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30 font-semibold">
                 {isAdmin ? 'Admin' : (user?.tier || 'Free')}
               </span>
             </div>
@@ -456,7 +458,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
             playTactileClick();
             onNavigateToGenerator();
           }}
-          className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition cursor-pointer active:scale-[0.98]"
+          className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md shadow-sky-500/20 transition cursor-pointer active:scale-[0.98]"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>New QR Matrix (Studio)</span>
@@ -466,7 +468,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
   );
 
   return (
-    <div className="w-full -mt-2 -mb-8 flex min-h-[calc(100vh-120px)] rounded-3xl overflow-hidden border border-white/[0.08] bg-zinc-950/80 shadow-2xl shadow-black/80 animate-in fade-in duration-200">
+    <div className="w-full min-h-screen flex border-t lg:border border-white/[0.08] bg-zinc-950/80 shadow-2xl shadow-black/80 animate-in fade-in duration-200">
       
       {/* 1. Desktop Left Fixed/Sticky Sidebar */}
       <aside className="hidden lg:block w-64 xl:w-72 shrink-0">
@@ -532,15 +534,15 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
           {activeSection === 'qrs' && (
             <div className="space-y-6">
               {/* Pro Tier Banner if on Free Tier */}
-              {user?.tier !== 'pro' && user?.tier !== 'enterprise' && (
-                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-950/80 via-zinc-900 to-zinc-950 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+              {!isAdmin && user?.tier !== 'pro' && user?.tier !== 'enterprise' && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-sky-950/40 via-zinc-900 to-zinc-950 border border-[#38bdf8]/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-[#38bdf8]/10 border border-[#38bdf8]/20 flex items-center justify-center text-[#38bdf8] shrink-0">
                       <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-white">Unlock Unlimited Dynamic QR Codes & Ad-Free Studio</h4>
+                        <h4 className="text-sm font-bold text-white">Unlock Unlimited Dynamic QR Codes & 100% Ad-Free Studio</h4>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-white/10">Free Starter</span>
                       </div>
                       <p className="text-xs text-zinc-400 mt-0.5">
@@ -556,7 +558,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
                           playTactileClick();
                           onOpenPricing();
                         }}
-                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition cursor-pointer shrink-0 shadow-md shadow-blue-600/20"
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs font-bold transition cursor-pointer shrink-0 shadow-md shadow-sky-500/20"
                       >
                         Upgrade to Pro
                       </button>
@@ -713,11 +715,11 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
           {/* ADMIN SERVICE: Executive Overview */}
           {activeSection === 'overview' && isAdmin && platformStats && (
             <div className="space-y-8 animate-in fade-in duration-200">
-              <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-zinc-900 via-indigo-950/40 to-zinc-950 border border-indigo-500/20 relative overflow-hidden shadow-xl">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+              <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-zinc-900 via-sky-950/30 to-zinc-950 border border-[#38bdf8]/25 relative overflow-hidden shadow-xl">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-[#38bdf8]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
                 <div className="relative z-10 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-mono font-bold">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/30 text-[11px] font-mono font-bold">
                       ADMIN CONSOLE
                     </span>
                     <span className="text-xs text-zinc-400">Enterprise Core v3.2</span>
@@ -739,7 +741,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
                 >
                   <div className="flex items-center justify-between text-zinc-400">
                     <span className="text-[10px] font-semibold uppercase tracking-wider">Users</span>
-                    <Users className="w-4 h-4 text-violet-400 group-hover:scale-110 transition-transform" />
+                    <Users className="w-4 h-4 text-[#38bdf8] group-hover:scale-110 transition-transform" />
                   </div>
                   <div>
                     <div className="text-2xl font-extrabold text-white">{platformStats.totalUsers}</div>
@@ -753,7 +755,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
                 >
                   <div className="flex items-center justify-between text-zinc-400">
                     <span className="text-[10px] font-semibold uppercase tracking-wider">Packages</span>
-                    <Package className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                    <Package className="w-4 h-4 text-sky-400 group-hover:scale-110 transition-transform" />
                   </div>
                   <div>
                     <div className="text-2xl font-extrabold text-white">{platformStats.packagesCount}</div>

@@ -143,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <LayoutDashboard className={`w-3.5 h-3.5 ${activeView === 'dashboard' || activeView === 'admin' ? 'text-[#38bdf8]' : 'text-zinc-400'}`} aria-hidden="true" />
                 <span>Dashboard</span>
                 {isAdmin && (
-                  <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                  <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">
                     Admin
                   </span>
                 )}

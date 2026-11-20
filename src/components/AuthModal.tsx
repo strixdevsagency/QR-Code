@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, AlertCircle, Key, CheckCircle2, ArrowLeft, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
@@ -7,7 +7,7 @@ import { playVictoryFanfare, playTactileClick } from '../utils/audioFeedback';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultMode?: 'login' | 'register' | 'key' | 'forgot';
+  defaultMode?: 'login' | 'register' | 'key' | 'forgot' | 'reset';
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMode = 'login' }) => {
@@ -23,6 +23,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultMo
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setMode(defaultMode);
+      setErrorMsg(null);
+      setKeySuccess(false);
+      setKeySuccessMsg(null);
+      setResetSentEmail(null);
+      setPasswordUpdated(false);
+    }
+  }, [isOpen, defaultMode]);
 
   if (!isOpen) return null;
 

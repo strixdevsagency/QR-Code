@@ -21,7 +21,8 @@ import { useAuth } from '../../context/AuthContext';
 interface BulkGeneratorProps {
   design: QRDesignOptions;
   onOpenPricing?: () => void;
-  onOpenAuth?: () => void;
+  onOpenAuth?: (mode?: 'login' | 'register' | 'key' | 'forgot') => void;
+  onOpenRedeemKey?: () => void;
 }
 
 const SAMPLE_CSV = `# Restaurant Table Ordering Example
@@ -33,7 +34,12 @@ Table 05 - VIP Lounge, https://menu.strixdevs.com/order?table=5
 VIP Wifi - 5GHz, WIFI:S:StrixVIP-5G;T:WPA;P:HighSpeedVIP2026;;
 Alex Vance Contact Card, BEGIN:VCARD\\nVERSION:3.0\\nFN:Alex Vance\\nTEL:+18005550199\\nEND:VCARD`;
 
-export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design, onOpenPricing, onOpenAuth }) => {
+export const BulkGenerator: React.FC<BulkGeneratorProps> = ({
+  design,
+  onOpenPricing,
+  onOpenAuth,
+  onOpenRedeemKey,
+}) => {
   const { user, isAdmin } = useAuth();
   const isUnlocked = isAdmin || user?.tier === 'pro' || user?.tier === 'enterprise';
   const [rawText, setRawText] = useState<string>('');
@@ -199,12 +205,16 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design, onOpenPric
                 <span>Upgrade to Pro</span>
               </button>
             )}
-            {onOpenAuth && (
+            {(onOpenRedeemKey || onOpenAuth) && (
               <button
                 type="button"
                 onClick={() => {
                   playTactileClick();
-                  onOpenAuth();
+                  if (onOpenRedeemKey) {
+                    onOpenRedeemKey();
+                  } else if (onOpenAuth) {
+                    onOpenAuth('key');
+                  }
                 }}
                 className="px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 font-bold text-xs flex items-center gap-2 transition cursor-pointer"
               >

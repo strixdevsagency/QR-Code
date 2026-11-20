@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Key,
   Plus,
@@ -45,8 +45,17 @@ export const LicenseManager: React.FC = () => {
     expiresInDays: 0, // 0 = code voucher never expires
   });
 
+  useEffect(() => {
+    db.syncLicenseCodesFromSupabase().then((synced) => {
+      if (synced && synced.length > 0) setCodes(synced);
+    });
+  }, []);
+
   const refreshCodes = () => {
     setCodes(db.getLicenseCodes());
+    db.syncLicenseCodesFromSupabase().then((synced) => {
+      if (synced && synced.length > 0) setCodes(synced);
+    });
   };
 
   const handleCopyCode = (id: string, code: string) => {

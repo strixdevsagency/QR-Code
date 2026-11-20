@@ -26,8 +26,25 @@ export default function HomePage() {
   const { updateUserTier } = useAuth();
   const [activeView, setActiveView] = useState<'generator' | 'bulk' | 'scanner' | 'dashboard' | 'admin'>('generator');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'key' | 'forgot' | 'reset'>('login');
   const [isPricingModalOpen, setIsPricingModalOpen] = useState<boolean>(false);
   const [resolverCodeId, setResolverCodeId] = useState<string | null>(null);
+
+  const handleOpenAuth = (mode: 'login' | 'register' | 'key' | 'forgot' | 'reset' = 'login') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  // Check URL query parameters or hash for Supabase password recovery
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hash = window.location.hash || '';
+      if (urlParams.get('reset') === 'true' || hash.includes('type=recovery')) {
+        handleOpenAuth('reset');
+      }
+    }
+  }, []);
 
   // Payload inputs
   const [payloadType, setPayloadType] = useState<QRType>('url');
@@ -208,7 +225,7 @@ export default function HomePage() {
         <Header
           activeView={activeView}
           setActiveView={setActiveView}
-          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onOpenAuth={() => handleOpenAuth('login')}
           onOpenPricing={() => setIsPricingModalOpen(true)}
           onNavigateToSection={scrollToSection}
         />
@@ -258,7 +275,7 @@ export default function HomePage() {
                   timeLimitPreset={timeLimitPreset}
                   setTimeLimitPreset={setTimeLimitPreset}
                   onOpenPricing={() => setIsPricingModalOpen(true)}
-                  onOpenAuth={() => setIsAuthModalOpen(true)}
+                  onOpenAuth={() => handleOpenAuth('login')}
                 />
               </div>
 
@@ -270,7 +287,7 @@ export default function HomePage() {
                   expiryMode={expiryMode}
                   timeLimitPreset={timeLimitPreset}
                   onAutoFixContrast={handleAutoFixContrast}
-                  onOpenAuth={() => setIsAuthModalOpen(true)}
+                  onOpenAuth={() => handleOpenAuth('login')}
                   onOpenPricing={() => setIsPricingModalOpen(true)}
                   onTriggerDynamicResolver={(codeId) => setResolverCodeId(codeId)}
                 />
@@ -302,7 +319,8 @@ export default function HomePage() {
             <BulkGenerator
               design={design}
               onOpenPricing={() => setIsPricingModalOpen(true)}
-              onOpenAuth={() => setIsAuthModalOpen(true)}
+              onOpenAuth={handleOpenAuth}
+              onOpenRedeemKey={() => handleOpenAuth('key')}
             />
           </div>
         )}
@@ -327,6 +345,7 @@ export default function HomePage() {
 
       <AuthModal
         isOpen={isAuthModalOpen}
+        defaultMode={authModalMode}
         onClose={() => setIsAuthModalOpen(false)}
       />
 

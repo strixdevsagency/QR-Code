@@ -908,6 +908,46 @@ class DatabaseService {
     return this.getItem<LicenseCode[]>(CODES_KEY, DEFAULT_LICENSE_CODES);
   }
 
+  async syncLicenseCodesFromSupabase(): Promise<LicenseCode[]> {
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('license_codes')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          const syncedCodes: LicenseCode[] = data.map((item: any) => {
+            let durationDays: number | undefined;
+            const match = item.notes?.match(/\[duration:(\d+)d\]/);
+            if (match) durationDays = parseInt(match[1], 10);
+            return {
+              id: item.id,
+              code: item.code,
+              tier: (item.tier as UserTier) || 'pro',
+              durationDays,
+              duration: durationDays === 7 ? '7_days' : durationDays === 365 ? '1_year' : durationDays === 0 ? 'lifetime' : '1_month',
+              maxUses: item.max_uses,
+              usedCount: item.used_count || 0,
+              usedByEmails: item.used_by_emails || [],
+              customerEmail: item.customer_email || undefined,
+              customerName: item.customer_name || undefined,
+              notes: item.notes || undefined,
+              isActive: item.is_active !== false,
+              expiresAt: item.expires_at || undefined,
+              createdAt: item.created_at || new Date().toISOString(),
+            };
+          });
+          this.setItem(CODES_KEY, syncedCodes);
+          return syncedCodes;
+        }
+      } catch (err) {
+        console.warn('Could not sync license codes from Supabase:', err);
+      }
+    }
+    return this.getLicenseCodes();
+  }
+
   createLicenseCode(data: Omit<LicenseCode, 'id' | 'createdAt' | 'usedCount' | 'usedByEmails'>): LicenseCode {
     const codes = this.getLicenseCodes();
 
@@ -967,30 +1007,52 @@ class DatabaseService {
     const codes = this.getLicenseCodes().map((c) => (c.id === id ? { ...c, ...updates } : c));
     this.setItem(CODES_KEY, codes);
 
-    if (isSupabaseConfigured() && supabase) {
-      const found = codes.find((c) => c.id === id);
-      if (found) {
-        syncToSupabase(
-          supabase
-            .from('license_codes')
-            .update({
-              is_active: found.isActive,
-              max_uses: found.maxUses,
-              notes: found.notes,
-              tier: found.tier,
-              used_count: found.usedCount,
-              used_by_emails: found.usedByEmails,
-            })
-            .eq('id', id)
-        );
+    const found = codes.find((c) => c.id === id);
+
+    // If deactivated, revoke active session & demote users on this device immediately
+    if (found && updates.isActive === false) {
+      const activeSession = this.getActiveLicenseSession();
+      if (activeSession && activeSession.code.toUpperCase() === found.code.toUpperCase()) {
+        this.clearActiveLicenseSession();
       }
+      const current = this.getCurrentUser();
+      if (current && current.activeRedeemedCode?.toUpperCase() === found.code.toUpperCase() && current.role !== 'admin') {
+        current.tier = 'free';
+        current.tierExpiresAt = null;
+        current.activeRedeemedCode = null;
+        this.setItem(CURRENT_USER_KEY, current);
+        this.updateUserTier(current.id, 'free', null);
+      }
+    }
+
+    if (isSupabaseConfigured() && supabase && found) {
+      syncToSupabase(
+        supabase
+          .from('license_codes')
+          .update({
+            is_active: found.isActive,
+            max_uses: found.maxUses,
+            notes: found.notes,
+            tier: found.tier,
+            used_count: found.usedCount,
+            used_by_emails: found.usedByEmails,
+          })
+          .or(`id.eq.${id},code.ilike.${found.code}`)
+      );
     }
   }
 
   deleteLicenseCode(id: string): void {
-    this.setItem(CODES_KEY, this.getLicenseCodes().filter((c) => c.id !== id));
+    const codes = this.getLicenseCodes();
+    const target = codes.find((c) => c.id === id);
+    this.setItem(CODES_KEY, codes.filter((c) => c.id !== id));
     if (isSupabaseConfigured() && supabase) {
-      syncToSupabase(supabase.from('license_codes').delete().eq('id', id));
+      syncToSupabase(
+        supabase
+          .from('license_codes')
+          .delete()
+          .or(`id.eq.${id}${target ? `,code.ilike.${target.code}` : ''}`)
+      );
     }
   }
 
@@ -1012,10 +1074,10 @@ class DatabaseService {
     const codes = this.getLicenseCodes();
     let found = codes.find((c) => c.code.toUpperCase() === cleanCode);
 
-    // Fallback support for master promo keys if not in database yet
+    // Fallback support for master promo keys ONLY if defined in FALLBACK_MASTER_KEYS
     if (!found) {
       const FALLBACK_MASTER_KEYS = ['STRIX-PRO', 'STRIX-PRO-VIP', 'STRIX2026', 'PRO-PASS'];
-      if (FALLBACK_MASTER_KEYS.includes(cleanCode) || cleanCode.startsWith('STRIX-PRO-') || cleanCode.startsWith('PRO-')) {
+      if (FALLBACK_MASTER_KEYS.includes(cleanCode)) {
         found = {
           id: `lic_master_${Date.now()}`,
           code: cleanCode,
@@ -1037,7 +1099,7 @@ class DatabaseService {
       return { success: false, error: 'Invalid license key. Please check your activation code or contact support.' };
     }
 
-    if (!found.isActive) {
+    if (found.isActive === false || !found.isActive) {
       return { success: false, error: 'This license key has been deactivated or revoked.' };
     }
 

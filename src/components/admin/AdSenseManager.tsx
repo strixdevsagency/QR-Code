@@ -401,14 +401,15 @@ export const AdSenseManager: React.FC = () => {
       </div>
 
       {/* Save Button */}
-      <Button
-        variant="primary"
-        fullWidth
-        onClick={handleSaveAll}
-        className="py-3.5 font-bold text-sm shadow-xl shadow-blue-600/20 active:scale-[0.99] cursor-pointer"
-      >
-        {saved ? '✓ Monetization & Sponsor Settings Saved!' : 'Save Monetization & Sponsor Configurations'}
-      </Button>
+      <div className="flex justify-end pt-2">
+        <Button
+          variant="primary"
+          onClick={handleSaveAll}
+          className="py-3 px-6 font-bold text-sm shadow-xl shadow-[#38bdf8]/20 active:scale-[0.99] cursor-pointer"
+        >
+          {saved ? '✓ Monetization & Sponsor Settings Saved!' : 'Save Monetization & Sponsor Configurations'}
+        </Button>
+      </div>
     </div>
   );
 };

@@ -312,11 +312,11 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
   }
 
   const renderSidebar = () => (
-    <div className="flex flex-col h-full bg-zinc-950/95 border-r border-white/[0.08] backdrop-blur-2xl">
+    <div className="flex flex-col h-full w-full bg-zinc-950 select-none">
       {/* Brand & Console Header */}
-      <div className="p-5 border-b border-white/[0.08] flex items-center justify-between">
+      <div className="shrink-0 p-4 border-b border-white/[0.08] flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-sky-500/20 border border-white/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 via-sky-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-sky-500/20 border border-white/20 shrink-0">
             {isAdmin ? <Shield className="w-5 h-5 text-white" /> : <LayoutDashboard className="w-5 h-5 text-white" />}
           </div>
           <div>
@@ -432,7 +432,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
       </div>
 
       {/* Operator Card & Open Studio Footer */}
-      <div className="p-4 border-t border-white/[0.08] bg-zinc-950 space-y-3">
+      <div className="shrink-0 p-4 border-t border-white/[0.08] bg-zinc-950 space-y-3">
         <div className="p-2.5 rounded-xl bg-zinc-900/70 border border-white/[0.08] flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white border border-white/20 shrink-0">
             {user?.name?.[0]?.toUpperCase() || 'U'}
@@ -464,10 +464,10 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
   );
 
   return (
-    <div className="w-full min-h-screen flex border-t lg:border border-white/[0.08] bg-zinc-950/80 shadow-2xl shadow-black/80 animate-in fade-in duration-200">
+    <div className="w-full h-full flex overflow-hidden bg-zinc-950">
       
       {/* 1. Desktop Left Fixed/Sticky Sidebar */}
-      <aside className="hidden lg:block w-64 xl:w-72 shrink-0">
+      <aside className="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 h-full border-r border-white/[0.08] bg-zinc-950 z-30 select-none">
         {renderSidebar()}
       </aside>
 
@@ -478,16 +478,16 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
             className="fixed inset-0 bg-black/80 backdrop-blur-sm animate-fadeIn"
             onClick={() => setMobileSidebarOpen(false)}
           />
-          <div className="relative w-72 max-w-full z-10 animate-slideRight">
+          <div className="relative w-72 max-w-[85vw] h-full z-10 animate-slideRight">
             {renderSidebar()}
           </div>
         </div>
       )}
 
       {/* 2. Main Content Stage Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-zinc-900/30">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-zinc-900/30">
         {/* Top Operations Header */}
-        <header className="px-6 py-4 border-b border-white/[0.08] bg-zinc-950/60 backdrop-blur-xl flex items-center justify-between gap-4 sticky top-0 z-20">
+        <header className="shrink-0 px-6 py-3.5 border-b border-white/[0.08] bg-zinc-950/80 backdrop-blur-xl flex items-center justify-between gap-4 z-20">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileSidebarOpen(true)}
@@ -520,7 +520,8 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
         </header>
 
         {/* Main Stage Panel */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto w-full space-y-6">
           {/* USER SERVICE: QR Codes List */}
           {activeSection === 'qrs' && (
             <div className="space-y-6">
@@ -905,6 +906,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
           {activeSection === 'dynamic' && isAdmin && <DynamicQRMgr />}
           {activeSection === 'ads' && isAdmin && <AdSenseManager />}
           {activeSection === 'config' && isAdmin && <AnalyticsConfig />}
+          </div>
         </main>
       </div>
 

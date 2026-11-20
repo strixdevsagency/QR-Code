@@ -201,7 +201,9 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-sans selection:bg-[#38bdf8]/20 selection:text-white">
+    <div className={`bg-[#09090b] text-zinc-100 flex flex-col font-sans selection:bg-[#38bdf8]/20 selection:text-white ${
+      activeView === 'dashboard' || activeView === 'admin' ? 'h-screen w-full overflow-hidden' : 'min-h-screen'
+    }`}>
       {activeView !== 'dashboard' && activeView !== 'admin' && (
         <Header
           activeView={activeView}
@@ -212,7 +214,11 @@ export default function HomePage() {
         />
       )}
 
-      <main className={`flex-1 w-full mx-auto ${activeView === 'dashboard' || activeView === 'admin' ? 'p-0 max-w-full' : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-16'}`}>
+      <main className={`flex-1 w-full mx-auto ${
+        activeView === 'dashboard' || activeView === 'admin'
+          ? 'h-full w-full overflow-hidden p-0 max-w-full m-0'
+          : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-16'
+      }`}>
         {activeView === 'generator' && (
           <>
             <HeroSection />

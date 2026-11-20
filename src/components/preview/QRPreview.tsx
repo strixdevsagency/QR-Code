@@ -17,6 +17,7 @@ interface QRPreviewProps {
   timeLimitPreset: string;
   onAutoFixContrast: () => void;
   onOpenAuth: () => void;
+  onOpenPricing?: () => void;
   onTriggerDynamicResolver?: (codeId: string) => void;
 }
 
@@ -28,6 +29,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   timeLimitPreset,
   onAutoFixContrast,
   onOpenAuth,
+  onOpenPricing,
   onTriggerDynamicResolver,
 }) => {
   const { user, isAuthenticated } = useAuth();
@@ -45,6 +47,18 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
   // Helper to ensure an ephemeral dynamic record exists in db for download or save
   const ensureDynamicRecord = (targetUserId: string) => {
+    // Enforce 3 dynamic QR limit for Free tier
+    const isDynamic = expiryMode !== 'lifetime';
+    if (isDynamic && user?.role !== 'admin' && user?.tier !== 'pro' && user?.tier !== 'enterprise') {
+      const existingUserQRs = user ? db.getUserQRs(user.id) : [];
+      const dynamicCount = existingUserQRs.filter((q) => q.isDynamic).length;
+      if (dynamicCount >= 3) {
+        alert('Free Starter Plan limit reached (maximum 3 Dynamic QR codes). Upgrade to Pro for unlimited dynamic codes, custom routing, and real-time edits.');
+        onOpenPricing?.();
+        return null;
+      }
+    }
+
     const isOneTime = expiryMode === 'one_time';
     const expiresAt = expiryMode === 'time_limited'
       ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
@@ -83,6 +97,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
     if (isDynamic) {
       const saved = ensureDynamicRecord(user.id);
+      if (!saved) return;
       savedId = saved.id;
     } else {
       db.saveQRCode({
@@ -105,7 +120,8 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
   const handleInitiateDownload = (format: 'png' | 'svg' | 'pdf') => {
     if (expiryMode !== 'lifetime' && !dynamicCodeId) {
-      ensureDynamicRecord(user?.id || 'guest');
+      const saved = ensureDynamicRecord(user?.id || 'guest');
+      if (!saved) return;
       setTimeout(() => setDownloadFormat(format), 100);
       return;
     }

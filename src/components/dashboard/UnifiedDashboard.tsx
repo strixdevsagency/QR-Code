@@ -326,10 +326,6 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
                 {isAdmin ? 'ADMIN' : (user?.tier || 'FREE').toUpperCase()}
               </span>
             </div>
-            <p className="text-[11px] text-zinc-400 font-mono flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              PostgreSQL Connected
-            </p>
           </div>
         </div>
 
@@ -393,7 +389,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
           <h4 className="px-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400 font-mono">
             QUICK ACTIONS
           </h4>
-          {!isAdmin && (
+          {!isAdmin && user?.tier === 'free' && (
             <button
               onClick={() => {
                 playTactileClick();
@@ -509,11 +505,6 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px] font-semibold">
-              <Server className="w-3 h-3" />
-              PostgreSQL Active · RLS Enforced
-            </span>
-
             <button
               type="button"
               onClick={() => {
@@ -705,7 +696,7 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
                   </div>
                   <div className="p-3 rounded-xl bg-zinc-950/60 border border-white/[0.06] space-y-1">
                     <p className="text-zinc-300 font-semibold">Cloud Storage Active</p>
-                    <p className="text-zinc-400">PostgreSQL table & Supabase Storage bucket linked.</p>
+                    <p className="text-zinc-400">Cloud assets and vector vaults synchronized.</p>
                   </div>
                 </div>
               </div>
@@ -873,32 +864,32 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
                 <div className="p-6 rounded-2xl bg-zinc-900/50 border border-white/[0.08] space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <Server className="w-4 h-4 text-emerald-400" />
+                      <ShieldCheck className="w-4 h-4 text-[#38bdf8]" />
                       <span>Security & Infrastructure Status</span>
                     </h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
-                      HARDENED
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#38bdf8]/10 text-[#38bdf8] border border-[#38bdf8]/20 font-bold">
+                      ACTIVE
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 leading-relaxed">
-                    Cryptographic access controls, server-verified roles, Row Level Security, and Supabase Cloud Storage.
+                    Cryptographic access controls, server-verified roles, global CDN distribution, and secure automated provisioning.
                   </p>
                   <div className="space-y-2">
                     <div className="p-3 rounded-xl bg-zinc-950/80 border border-white/[0.06] flex items-center justify-between text-xs">
-                      <span className="text-zinc-300">Row Level Security (RLS)</span>
-                      <span className="text-emerald-400 font-mono font-bold">Enabled (All Tables)</span>
+                      <span className="text-zinc-300">Access Control & Security</span>
+                      <span className="text-[#38bdf8] font-mono font-bold">Hardware-Hardened</span>
                     </div>
                     <div className="p-3 rounded-xl bg-zinc-950/80 border border-white/[0.06] flex items-center justify-between text-xs">
                       <span className="text-zinc-300">Dynamic Base Domain</span>
-                      <span className="text-indigo-400 font-mono font-bold">qr.strixdevs.com</span>
+                      <span className="text-sky-400 font-mono font-bold">qr.strixdevs.com</span>
                     </div>
                     <div className="p-3 rounded-xl bg-zinc-950/80 border border-white/[0.06] flex items-center justify-between text-xs">
-                      <span className="text-zinc-300">Logo Cloud Storage Bucket</span>
-                      <span className="text-emerald-400 font-mono font-bold">logos (Supabase CDN)</span>
+                      <span className="text-zinc-300">Brand Asset Cloud Storage</span>
+                      <span className="text-[#38bdf8] font-mono font-bold">Global CDN Bucket</span>
                     </div>
                     <div className="p-3 rounded-xl bg-zinc-950/80 border border-white/[0.06] flex items-center justify-between text-xs">
                       <span className="text-zinc-300">Payment Webhook Signatures</span>
-                      <span className="text-emerald-400 font-mono font-bold">HMAC-SHA256 Active</span>
+                      <span className="text-[#38bdf8] font-mono font-bold">HMAC-SHA256 Active</span>
                     </div>
                   </div>
                 </div>

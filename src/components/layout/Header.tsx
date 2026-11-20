@@ -186,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
                           <p className="text-xs font-semibold text-white truncate max-w-[130px]">{user?.name}</p>
                           <div className="flex items-center gap-1 shrink-0">
                             {isAdmin ? (
-                              <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 border border-violet-500/30 flex items-center gap-1">
+                              <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30 flex items-center gap-1">
                                 <Shield className="w-2.5 h-2.5" />
                                 Admin
                               </span>
@@ -195,7 +195,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 User
                               </span>
                             )}
-                            <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                            <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
                               {user?.tier || 'Free'}
                             </span>
                           </div>
@@ -212,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
                           disabled={isSyncingRole}
                           className="mt-2 text-[10px] text-zinc-400 hover:text-white flex items-center gap-1.5 transition cursor-pointer hover:underline disabled:opacity-50"
                         >
-                          <RefreshCw className={`w-3 h-3 text-indigo-400 ${isSyncingRole ? 'animate-spin' : ''}`} />
+                          <RefreshCw className={`w-3 h-3 text-[#38bdf8] ${isSyncingRole ? 'animate-spin' : ''}`} />
                           <span>{isSyncingRole ? 'Syncing...' : 'Sync Privileges with Cloud'}</span>
                         </button>
                       </div>
@@ -363,7 +363,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <span>Dashboard Console</span>
                   </div>
                   {isAdmin && (
-                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">
                       Admin
                     </span>
                   )}

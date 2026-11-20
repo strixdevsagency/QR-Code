@@ -251,6 +251,8 @@ export default function HomePage() {
                   setExpiryMode={setExpiryMode}
                   timeLimitPreset={timeLimitPreset}
                   setTimeLimitPreset={setTimeLimitPreset}
+                  onOpenPricing={() => setIsPricingModalOpen(true)}
+                  onOpenAuth={() => setIsAuthModalOpen(true)}
                 />
               </div>
 
@@ -263,6 +265,7 @@ export default function HomePage() {
                   timeLimitPreset={timeLimitPreset}
                   onAutoFixContrast={handleAutoFixContrast}
                   onOpenAuth={() => setIsAuthModalOpen(true)}
+                  onOpenPricing={() => setIsPricingModalOpen(true)}
                   onTriggerDynamicResolver={(codeId) => setResolverCodeId(codeId)}
                 />
                 <AdBanner
@@ -290,7 +293,11 @@ export default function HomePage() {
 
         {activeView === 'bulk' && (
           <div className="mt-8">
-            <BulkGenerator design={design} />
+            <BulkGenerator
+              design={design}
+              onOpenPricing={() => setIsPricingModalOpen(true)}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+            />
           </div>
         )}
 

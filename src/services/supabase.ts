@@ -139,6 +139,27 @@ export async function refreshSession(): Promise<Session | null> {
 }
 
 /**
+ * Send a password reset recovery email with deep link
+ */
+export async function resetPasswordForEmail(email: string): Promise<{ error: Error | null }> {
+  if (!supabase) return { error: null };
+  const baseAppUrl = getBaseAppUrl();
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo: `${baseAppUrl}/?reset=true`,
+  });
+  return { error };
+}
+
+/**
+ * Update the user's password once authenticated or following recovery
+ */
+export async function updateUserPassword(password: string): Promise<{ error: Error | null }> {
+  if (!supabase) return { error: null };
+  const { error } = await supabase.auth.updateUser({ password });
+  return { error };
+}
+
+/**
  * Upload an image file to Supabase Cloud Storage ('logos' bucket)
  * Returns the permanent public CDN URL and storage path
  */

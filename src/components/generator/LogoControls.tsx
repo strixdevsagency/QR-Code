@@ -10,6 +10,8 @@ import { db } from '../../services/db';
 interface LogoControlsProps {
   design: QRDesignOptions;
   setDesign: React.Dispatch<React.SetStateAction<QRDesignOptions>>;
+  onOpenPricing?: () => void;
+  onOpenAuth?: () => void;
 }
 
 interface PresetBadgeOption {
@@ -51,10 +53,17 @@ const PRESET_BADGES: PresetBadgeOption[] = [
   },
 ];
 
-export const LogoControls: React.FC<LogoControlsProps> = ({ design, setDesign }) => {
+export const LogoControls: React.FC<LogoControlsProps> = ({ design, setDesign, onOpenPricing }) => {
   const { user } = useAuth();
+  const isProOrAdmin = user?.role === 'admin' || user?.tier === 'pro' || user?.tier === 'enterprise';
 
   const handleCustomLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isProOrAdmin) {
+      alert('Custom logo uploads and cloud storage are reserved for Pro & Enterprise members. Please upgrade or redeem a license key to attach custom logos.');
+      onOpenPricing?.();
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (file) {
       playTactileClick();
@@ -204,22 +213,42 @@ export const LogoControls: React.FC<LogoControlsProps> = ({ design, setDesign })
 
       <div className="pt-3 border-t border-white/[0.08]">
         <div className="flex items-center justify-between mb-2">
-          <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider">
-            Upload Custom Brand Logo (PNG / SVG)
-          </label>
+          <div className="flex items-center gap-2">
+            <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+              Upload Custom Brand Logo (PNG / SVG)
+            </label>
+            {!isProOrAdmin && (
+              <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">
+                PRO
+              </span>
+            )}
+          </div>
           <span className="text-[10px] text-zinc-500">Supports full multi-color</span>
         </div>
 
         <div className="flex items-center gap-3">
-          <label className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-white/[0.1] text-xs font-semibold text-white cursor-pointer transition-all shadow-sm active:scale-[0.98]">
-            Choose Logo File
-            <input
-              type="file"
-              accept="image/png, image/jpeg, image/svg+xml"
-              onChange={handleCustomLogoUpload}
-              className="hidden"
-            />
-          </label>
+          {isProOrAdmin ? (
+            <label className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-white/[0.1] text-xs font-semibold text-white cursor-pointer transition-all shadow-sm active:scale-[0.98]">
+              Choose Logo File
+              <input
+                type="file"
+                accept="image/png, image/jpeg, image/svg+xml"
+                onChange={handleCustomLogoUpload}
+                className="hidden"
+              />
+            </label>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                playTactileClick();
+                onOpenPricing?.();
+              }}
+              className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-[#38bdf8]/30 text-xs font-semibold text-[#38bdf8] cursor-pointer transition-all shadow-sm flex items-center gap-1.5"
+            >
+              <span>Unlock Custom Logos (Pro)</span>
+            </button>
+          )}
 
           {design.logoUrl && !design.presetLogoId && (
             <button

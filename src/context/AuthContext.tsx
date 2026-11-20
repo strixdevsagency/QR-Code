@@ -13,6 +13,8 @@ import {
   getActiveSession,
   getFreshUser,
   refreshSession,
+  resetPasswordForEmail,
+  updateUserPassword,
 } from '../services/supabase';
 
 interface AuthContextType {
@@ -24,6 +26,8 @@ interface AuthContextType {
   register: (name: string, email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
   loginWithOAuth: (provider?: 'google') => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   updateUserTier: (tier: UserTier) => void;
   updateUserRole: (userId: string, role: UserRole) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -310,6 +314,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    if (isCloud) {
+      const { error } = await resetPasswordForEmail(email);
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    }
+    // Local simulation
+    return { success: true };
+  };
+
+  const updatePassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
+    if (isCloud) {
+      const { error } = await updateUserPassword(password);
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    }
+    return { success: true };
+  };
+
   const updateUserTier = (tier: UserTier) => {
     if (user) {
       const updated = { ...user, tier };
@@ -421,6 +448,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         loginWithOAuth,
         logout,
+        resetPassword,
+        updatePassword,
         updateUserTier,
         updateUserRole,
         refreshUser,

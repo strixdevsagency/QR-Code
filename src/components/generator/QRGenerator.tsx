@@ -41,6 +41,8 @@ interface QRGeneratorProps {
   setExpiryMode: (mode: ExpiryMode) => void;
   timeLimitPreset: string;
   setTimeLimitPreset: (val: string) => void;
+  onOpenPricing?: () => void;
+  onOpenAuth?: () => void;
 }
 
 export const QRGenerator: React.FC<QRGeneratorProps> = ({
@@ -68,6 +70,8 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   setExpiryMode,
   timeLimitPreset,
   setTimeLimitPreset,
+  onOpenPricing,
+  onOpenAuth,
 }) => {
   const [activeTab, setActiveTab] = useState<'content' | 'style' | 'logo'>('content');
 
@@ -172,7 +176,12 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
       {/* Tab 3: Center Logo */}
       {activeTab === 'logo' && (
         <div className="animate-pop-in">
-          <LogoControls design={design} setDesign={setDesign} />
+          <LogoControls
+            design={design}
+            setDesign={setDesign}
+            onOpenPricing={onOpenPricing}
+            onOpenAuth={onOpenAuth}
+          />
         </div>
       )}
     </div>

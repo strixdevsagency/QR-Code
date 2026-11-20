@@ -1013,10 +1013,49 @@ class DatabaseService {
   }
 
   updatePackageOrderStatus(id: string, status: PackageOrderStatus, issuedCode?: string): void {
-    const orders = this.getPackageOrders().map((o) =>
-      o.id === id ? { ...o, status, ...(issuedCode ? { issuedCode } : {}) } : o
+    const orders = this.getPackageOrders();
+    const target = orders.find((o) => o.id === id);
+    if (!target) return;
+
+    const finalIssuedCode = issuedCode || target.issuedCode;
+    const updatedOrders = orders.map((o) =>
+      o.id === id ? { ...o, status, ...(finalIssuedCode ? { issuedCode: finalIssuedCode } : {}) } : o
     );
-    this.setItem(ORDERS_KEY, orders);
+    this.setItem(ORDERS_KEY, updatedOrders);
+
+    // Synchronize license codes and profile permissions
+    if (finalIssuedCode) {
+      const codeRecord = this.getLicenseCodes().find(
+        (c) => c.code.toUpperCase() === finalIssuedCode.toUpperCase()
+      );
+
+      if (status === 'cancelled') {
+        // Deactivate license code
+        if (codeRecord) {
+          this.updateLicenseCode(codeRecord.id, { isActive: false });
+        }
+        // Demote customer profile to free
+        if (target.email) {
+          const userRecord = this.getUsers().find((u) => u.email.toLowerCase() === target.email.toLowerCase());
+          if (userRecord && userRecord.role !== 'admin') {
+            this.updateUserTier(userRecord.id, 'free');
+          }
+        }
+      } else if (status === 'code_issued' || status === 'completed') {
+        // Activate license code
+        if (codeRecord) {
+          this.updateLicenseCode(codeRecord.id, { isActive: true });
+        }
+        // If completed, upgrade customer profile to requested tier
+        if (status === 'completed' && target.email) {
+          const userRecord = this.getUsers().find((u) => u.email.toLowerCase() === target.email.toLowerCase());
+          const targetTier = target.planId === 'enterprise' ? 'enterprise' : 'pro';
+          if (userRecord && userRecord.role !== 'admin') {
+            this.updateUserTier(userRecord.id, targetTier);
+          }
+        }
+      }
+    }
 
     if (isSupabaseConfigured() && supabase) {
       syncToSupabase(
@@ -1024,11 +1063,46 @@ class DatabaseService {
           .from('package_orders')
           .update({
             status,
-            ...(issuedCode ? { issued_code: issuedCode } : {}),
+            ...(finalIssuedCode ? { issued_code: finalIssuedCode } : {}),
             updated_at: new Date().toISOString(),
           })
           .eq('id', id)
       );
+
+      if (finalIssuedCode) {
+        if (status === 'cancelled') {
+          syncToSupabase(
+            supabase
+              .from('license_codes')
+              .update({ is_active: false })
+              .eq('code', finalIssuedCode.toUpperCase())
+          );
+          if (target.email) {
+            syncToSupabase(
+              supabase
+                .from('profiles')
+                .update({ tier: 'free', updated_at: new Date().toISOString() })
+                .eq('email', target.email.toLowerCase())
+            );
+          }
+        } else if (status === 'code_issued' || status === 'completed') {
+          syncToSupabase(
+            supabase
+              .from('license_codes')
+              .update({ is_active: true })
+              .eq('code', finalIssuedCode.toUpperCase())
+          );
+          if (status === 'completed' && target.email) {
+            const targetTier = target.planId === 'enterprise' ? 'enterprise' : 'pro';
+            syncToSupabase(
+              supabase
+                .from('profiles')
+                .update({ tier: targetTier, updated_at: new Date().toISOString() })
+                .eq('email', target.email.toLowerCase())
+            );
+          }
+        }
+      }
     }
   }
 

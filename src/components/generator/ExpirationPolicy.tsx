@@ -30,8 +30,8 @@ export const ExpirationPolicy: React.FC<ExpirationPolicyProps> = ({
         <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
           Security & Expiration Policy
         </label>
-        <span className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        <span className="text-[11px] font-medium text-[#38bdf8] bg-[#38bdf8]/10 px-2.5 py-0.5 rounded-full border border-[#38bdf8]/20 flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]" />
           Client Encoded
         </span>
       </div>
@@ -45,19 +45,19 @@ export const ExpirationPolicy: React.FC<ExpirationPolicyProps> = ({
           }}
           className={`p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 ${
             expiryMode === 'lifetime'
-              ? 'border-emerald-500/40 bg-emerald-500/10 text-white ring-1 ring-emerald-500/30 shadow-md shadow-emerald-500/10'
+              ? 'border-[#38bdf8]/40 bg-[#38bdf8]/10 text-white ring-1 ring-[#38bdf8]/30 shadow-md shadow-[#38bdf8]/10'
               : 'border-white/[0.08] bg-zinc-900/40 text-zinc-300 hover:border-white/[0.15] hover:bg-zinc-900/60'
           }`}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-bold text-xs text-emerald-400 flex items-center gap-1.5">
+            <span className="font-bold text-xs text-[#38bdf8] flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
               <span>Permanent Static</span>
             </span>
-            {expiryMode === 'lifetime' && <Check className="w-3.5 h-3.5 text-emerald-400 font-bold" />}
+            {expiryMode === 'lifetime' && <Check className="w-3.5 h-3.5 text-[#38bdf8] font-bold" />}
           </div>
           <p className="text-[11px] text-zinc-400 leading-snug">
-            Direct raw data. Never expires, zero server dependencies. Optimal for print.
+            Direct raw data. Unlimited & permanent. Never expires, zero server dependencies.
           </p>
         </button>
 
@@ -81,7 +81,7 @@ export const ExpirationPolicy: React.FC<ExpirationPolicyProps> = ({
             {expiryMode === 'one_time' && <Check className="w-3.5 h-3.5 text-amber-400 font-bold" />}
           </div>
           <p className="text-[11px] text-zinc-400 leading-snug">
-            Self-destructs after 1 scan. Single-use access for one-time credentials or links.
+            Dynamic ephemeral token. Self-destructs after 1 scan. Single-use access credentials.
           </p>
         </button>
 
@@ -93,19 +93,19 @@ export const ExpirationPolicy: React.FC<ExpirationPolicyProps> = ({
           }}
           className={`p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 ${
             expiryMode === 'time_limited'
-              ? 'border-blue-500/40 bg-blue-500/10 text-white ring-1 ring-blue-500/30 shadow-md shadow-blue-500/10'
+              ? 'border-sky-500/40 bg-sky-500/10 text-white ring-1 ring-sky-500/30 shadow-md shadow-sky-500/10'
               : 'border-white/[0.08] bg-zinc-900/40 text-zinc-300 hover:border-white/[0.15] hover:bg-zinc-900/60'
           }`}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-bold text-xs text-blue-400 flex items-center gap-1.5">
+            <span className="font-bold text-xs text-sky-400 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 shrink-0" />
               <span>Time-Limited</span>
             </span>
-            {expiryMode === 'time_limited' && <Check className="w-3.5 h-3.5 text-blue-400 font-bold" />}
+            {expiryMode === 'time_limited' && <Check className="w-3.5 h-3.5 text-sky-400 font-bold" />}
           </div>
           <p className="text-[11px] text-zinc-400 leading-snug">
-            Revokes automatically after chosen duration. Ideal for promotions and events.
+            Dynamic redirect token. Automatically revokes after selected duration.
           </p>
         </button>
       </div>

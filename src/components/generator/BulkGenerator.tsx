@@ -7,15 +7,20 @@ import {
   CheckCircle2, 
   Sparkles, 
   Loader2, 
-  Layers 
+  Layers,
+  Lock,
+  Key,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import type { QRDesignOptions, BulkQRItem } from '../../types';
 import { parseCSVInput, generateSingleQRPNG, batchDownloadZip } from '../../utils/bulkQREngine';
 import { playTactileClick, playVictoryFanfare } from '../../utils/audioFeedback';
+import { useAuth } from '../../context/AuthContext';
 
 interface BulkGeneratorProps {
   design: QRDesignOptions;
+  onOpenPricing?: () => void;
+  onOpenAuth?: () => void;
 }
 
 const SAMPLE_CSV = `# Restaurant Table Ordering Example
@@ -27,7 +32,9 @@ Table 05 - VIP Lounge, https://menu.strixdevs.com/order?table=5
 VIP Wifi - 5GHz, WIFI:S:StrixVIP-5G;T:WPA;P:HighSpeedVIP2026;;
 Alex Vance Contact Card, BEGIN:VCARD\\nVERSION:3.0\\nFN:Alex Vance\\nTEL:+18005550199\\nEND:VCARD`;
 
-export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design }) => {
+export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design, onOpenPricing, onOpenAuth }) => {
+  const { user, isAdmin } = useAuth();
+  const isUnlocked = isAdmin || user?.tier === 'pro' || user?.tier === 'enterprise';
   const [rawText, setRawText] = useState<string>('');
   const [items, setItems] = useState<BulkQRItem[]>([]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -124,7 +131,7 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design }) => {
       {/* Header Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] shadow-xl shadow-black/20 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#38bdf8]/10 border border-[#38bdf8]/20 text-[#38bdf8] text-xs font-semibold mb-3">
             <Sparkles className="w-3.5 h-3.5 animate-pulse" />
             Pro Client-Side Web Worker Batch Engine
           </div>
@@ -136,30 +143,79 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design }) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <Button variant="secondary" onClick={() => {
-            playTactileClick();
-            loadSample();
-          }}>
-            <Layers className="w-4 h-4 mr-1.5 text-blue-400" />
-            Load Sample CSV
-          </Button>
-          {items.length > 0 && (
-            <Button variant="danger" onClick={() => {
+        {isUnlocked && (
+          <div className="flex items-center gap-3 shrink-0">
+            <Button variant="secondary" onClick={() => {
               playTactileClick();
-              clearAll();
+              loadSample();
             }}>
-              <Trash2 className="w-4 h-4 mr-1.5" />
-              Clear
+              <Layers className="w-4 h-4 mr-1.5 text-[#38bdf8]" />
+              Load Sample CSV
             </Button>
-          )}
-        </div>
+            {items.length > 0 && (
+              <Button variant="danger" onClick={() => {
+                playTactileClick();
+                clearAll();
+              }}>
+                <Trash2 className="w-4 h-4 mr-1.5" />
+                Clear
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Input Form */}
-        <div className="lg:col-span-6 space-y-6">
+      {!isUnlocked ? (
+        <div className="p-8 sm:p-12 rounded-3xl bg-zinc-900/60 backdrop-blur-2xl border border-white/[0.1] text-center space-y-6 shadow-2xl relative overflow-hidden animate-pop-in">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#38bdf8]/5 via-transparent to-transparent pointer-events-none" />
+          <div className="w-16 h-16 rounded-2xl bg-[#38bdf8]/10 border border-[#38bdf8]/20 flex items-center justify-center text-[#38bdf8] mx-auto shadow-lg shadow-[#38bdf8]/10">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div className="max-w-lg mx-auto space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#38bdf8]/15 border border-[#38bdf8]/30 text-[#38bdf8] text-xs font-bold font-mono uppercase">
+              Pro & Enterprise Feature
+            </div>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+              Unlock High-Volume Bulk QR Generation
+            </h3>
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              Batch generate hundreds of vector QR codes from CSV with custom branding, instant batch preview, and single-click ZIP archive download.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {onOpenPricing && (
+              <button
+                type="button"
+                onClick={() => {
+                  playTactileClick();
+                  onOpenPricing();
+                }}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-sky-500/20 transition cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Upgrade to Pro</span>
+              </button>
+            )}
+            {onOpenAuth && (
+              <button
+                type="button"
+                onClick={() => {
+                  playTactileClick();
+                  onOpenAuth();
+                }}
+                className="px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 font-bold text-xs flex items-center gap-2 transition cursor-pointer"
+              >
+                <Key className="w-4 h-4 text-[#38bdf8]" />
+                <span>Redeem License Key</span>
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Input Form */}
+          <div className="lg:col-span-6 space-y-6">
           <div className="p-6 rounded-3xl bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] shadow-xl shadow-black/20 space-y-4">
             <div className="flex items-center justify-between">
               <label className="text-sm font-bold text-white flex items-center gap-2">
@@ -369,6 +425,7 @@ export const BulkGenerator: React.FC<BulkGeneratorProps> = ({ design }) => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

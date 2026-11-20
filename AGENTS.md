@@ -29,5 +29,23 @@
  18. Write code per file maximum 250 lines and structure maintain must be clean and readable 
  19. no duplicate code
 
+### Motives 
+
+We are Strix Devs need to show our products so we decide to build our ecosystems and we start from small projects. By small project we will run google ads for some profits and for ads free we will charges for get back our investment in hosting , domain and others. Main things is get fame and get more customers and we terget 1st and second world countries.
+
 ### Needs
- 1.
+  ## Core Services
+    1. Generate a qualitifull qr codeupto, we will provide a static and dynamic. for free user can create unlimited static but dynamic only 3 and pro user can unlimited and can see the visitors and other details.
+    2. Save the infos for authenticated users
+    3. for investors collect data by a contact form
+
+  ## Details 
+  1. In home page will be main thing qr code generate , show ads, some sections like comparison with others , faq, and others, a form for contact
+  2. High-Volume Bulk QR Studio pages
+  3. Price page : here a twist - we are startups so we don't have any payment getaways so we will contact with clients manually and take money and give him access like update the subscription and set the time and duration so there will be packages and if someone wanna buy just fill a form and we will contact him.
+  4. Optical QR & 2D Matrix Scanner page
+  5. Authentication page : normal gmail login , registration, and google login and reset pass and forget pass by otp 
+  5. Dashboard : there will be 2 role 
+   i. User: user can see recent activities, account, uploaded logos, generated qr code how many people scan and others infos.
+   ii. Admin: can see overview, users+ update the subscription , subscriptions, ads and banners , and others.
+  6. Main thing we need to add detail finishing for premium vibe to our users.

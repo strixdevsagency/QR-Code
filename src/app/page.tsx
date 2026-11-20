@@ -201,16 +201,18 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-sans selection:bg-zinc-800 selection:text-white">
-      <Header
-        activeView={activeView}
-        setActiveView={setActiveView}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
-        onOpenPricing={() => setIsPricingModalOpen(true)}
-        onNavigateToSection={scrollToSection}
-      />
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col font-sans selection:bg-[#38bdf8]/20 selection:text-white">
+      {activeView !== 'dashboard' && activeView !== 'admin' && (
+        <Header
+          activeView={activeView}
+          setActiveView={setActiveView}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onOpenPricing={() => setIsPricingModalOpen(true)}
+          onNavigateToSection={scrollToSection}
+        />
+      )}
 
-      <main className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 ${activeView === 'dashboard' || activeView === 'admin' ? 'max-w-[1600px]' : 'max-w-7xl'}`}>
+      <main className={`flex-1 w-full mx-auto ${activeView === 'dashboard' || activeView === 'admin' ? 'p-0 max-w-full' : 'max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-16'}`}>
         {activeView === 'generator' && (
           <>
             <HeroSection />
@@ -249,6 +251,8 @@ export default function HomePage() {
                   setExpiryMode={setExpiryMode}
                   timeLimitPreset={timeLimitPreset}
                   setTimeLimitPreset={setTimeLimitPreset}
+                  onOpenPricing={() => setIsPricingModalOpen(true)}
+                  onOpenAuth={() => setIsAuthModalOpen(true)}
                 />
               </div>
 
@@ -261,6 +265,7 @@ export default function HomePage() {
                   timeLimitPreset={timeLimitPreset}
                   onAutoFixContrast={handleAutoFixContrast}
                   onOpenAuth={() => setIsAuthModalOpen(true)}
+                  onOpenPricing={() => setIsPricingModalOpen(true)}
                   onTriggerDynamicResolver={(codeId) => setResolverCodeId(codeId)}
                 />
                 <AdBanner
@@ -288,7 +293,11 @@ export default function HomePage() {
 
         {activeView === 'bulk' && (
           <div className="mt-8">
-            <BulkGenerator design={design} />
+            <BulkGenerator
+              design={design}
+              onOpenPricing={() => setIsPricingModalOpen(true)}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+            />
           </div>
         )}
 

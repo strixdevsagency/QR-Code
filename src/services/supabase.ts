@@ -69,10 +69,10 @@ export async function signUpWithEmail(
 }
 
 /**
- * Sign in with OAuth provider (Google, GitHub)
+ * Sign in with OAuth provider (Google)
  * Supports cross-subdomain redirect for *.strixdevs.com
  */
-export async function signInWithOAuth(provider: 'google' | 'github'): Promise<{ error: Error | null }> {
+export async function signInWithOAuth(provider: 'google' = 'google'): Promise<{ error: Error | null }> {
   if (!supabase) {
     return { error: new Error('Supabase is not configured') };
   }

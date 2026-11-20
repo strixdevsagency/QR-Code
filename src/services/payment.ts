@@ -142,6 +142,24 @@ export function hasFeatureAccess(user: User | null | undefined, feature: Feature
 }
 
 /**
+ * Retrieve active pricing plans, prioritizing dynamic Admin packages when available
+ */
+export function getActivePricingPlans(): PricingPlan[] {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('strix_packages_v3');
+      if (stored) {
+        const parsed: PricingPlan[] = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((p) => p.isActive !== false);
+        }
+      }
+    } catch {}
+  }
+  return Object.values(PRICING_PLANS);
+}
+
+/**
  * Check whether payment gateways are configured in environment variables
  */
 export function isPaymentConfigured(): { stripe: boolean; lemonSqueezy: boolean } {

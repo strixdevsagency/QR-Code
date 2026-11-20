@@ -20,10 +20,10 @@ interface AuthContextType {
   isCloudAuth: boolean;
   login: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
-  loginWithOAuth: (provider: 'google' | 'github') => Promise<{ success: boolean; error?: string }>;
+  loginWithOAuth: (provider?: 'google') => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUserTier: (tier: UserTier) => void;
-  activateLicenseKey: (key: string) => { success: boolean; error?: string };
+  activateLicenseKey: (key: string) => { success: boolean; tier?: UserTier; error?: string; isTeamCode?: boolean; remainingUses?: number };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -140,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true };
   };
 
-  const loginWithOAuth = async (provider: 'google' | 'github'): Promise<{ success: boolean; error?: string }> => {
+  const loginWithOAuth = async (provider: 'google' = 'google'): Promise<{ success: boolean; error?: string }> => {
     if (isCloud) {
       const { error } = await signInWithOAuth(provider);
       if (error) {
@@ -172,32 +172,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Activate Pro with a license key without requiring email/password login
+   * Activate Pro/Enterprise with a single-use or team redemption code
    */
-  const activateLicenseKey = (key: string): { success: boolean; error?: string } => {
+  const activateLicenseKey = (key: string): { success: boolean; tier?: UserTier; error?: string; isTeamCode?: boolean; remainingUses?: number } => {
     const cleanKey = key.trim().toUpperCase();
-    const VALID_KEYS = ['STRIX-PRO', 'STRIX-PRO-VIP', 'STRIX2026', 'PRO-PASS'];
-    
-    if (VALID_KEYS.includes(cleanKey) || cleanKey.startsWith('STRIX-PRO-') || cleanKey.startsWith('PRO-')) {
+    const result = db.redeemLicenseCode(cleanKey, user?.email);
+
+    if (result.success && result.tier) {
+      const activeTier: UserTier = result.tier;
       const activeUser: User = user
-        ? { ...user, tier: 'pro' }
+        ? { ...user, tier: activeTier }
         : {
             id: `pro_license_${Date.now()}`,
             name: 'Pro License Member',
             email: 'pro-member@strixdevs.com',
             role: 'user',
-            tier: 'pro',
+            tier: activeTier,
             createdAt: new Date().toISOString(),
           };
 
       setUser(activeUser);
       db.setCurrentUser(activeUser);
-      return { success: true };
+      return {
+        success: true,
+        tier: activeTier,
+        isTeamCode: result.isTeamCode,
+        remainingUses: result.remainingUses,
+      };
     }
 
     return {
       success: false,
-      error: 'Invalid license key. Please check the code provided by StrixDevs billing.',
+      error: result.error || 'Invalid license key. Please check the code provided by StrixDevs billing.',
     };
   };
 

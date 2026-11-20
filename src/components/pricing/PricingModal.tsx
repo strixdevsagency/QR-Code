@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Check,
   Zap,
@@ -11,9 +11,10 @@ import {
   CheckCircle2,
   Mail,
   Key,
+  Users,
 } from 'lucide-react';
 import { PRICING_PLANS } from '../../services/payment';
-import { BillingInterval, UserTier } from '../../types';
+import { BillingInterval, PricingPlan, UserTier } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../services/db';
 import { Button } from '../ui/Button';
@@ -32,7 +33,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
   const { user, activateLicenseKey } = useAuth();
   const [view, setView] = useState<ModalView>('plans');
   const [interval, setInterval] = useState<BillingInterval>('annual');
-  const [selectedTier, setSelectedTier] = useState<UserTier>('pro');
+  const [packages, setPackages] = useState<PricingPlan[]>(() => db.getPackages().filter((p) => p.isActive !== false));
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('pro');
+  const [isTeamOrder, setIsTeamOrder] = useState<boolean>(false);
+  const [teamSeats, setTeamSeats] = useState<number>(1);
 
   // Simple customer contact details for manual follow-up
   const [formData, setFormData] = useState({
@@ -45,26 +49,39 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
   const [licenseKeyInput, setLicenseKeyInput] = useState<string>('');
   const [keyErrorMsg, setKeyErrorMsg] = useState<string | null>(null);
   const [keySuccess, setKeySuccess] = useState<boolean>(false);
+  const [redeemedInfo, setRedeemedInfo] = useState<{ isTeam?: boolean; remaining?: number; tier?: string } | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setPackages(db.getPackages().filter((p) => p.isActive !== false));
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const currentTier: UserTier = user?.tier || 'free';
-  const plan = PRICING_PLANS[selectedTier];
+  const plan = packages.find((p) => p.id === selectedPlanId) || packages[1] || packages[0] || PRICING_PLANS.pro;
+
+  const basePrice = interval === 'annual' ? plan.priceAnnual : plan.priceMonthly;
+  const teamMultiplier = isTeamOrder && teamSeats > 1 ? Math.max(1, teamSeats * 0.8) : 1;
+  const effectiveMonthly = Math.round(basePrice * teamMultiplier);
+  const effectiveAnnualTotal = Math.round(plan.annualBilledTotal * teamMultiplier);
+
   const formattedPrice =
     interval === 'annual'
-      ? `$${plan.annualBilledTotal}/year ($${plan.priceAnnual}/mo, Save 25%)`
-      : `$${plan.priceMonthly}/month`;
+      ? `$${effectiveAnnualTotal}/year ($${effectiveMonthly}/mo, Save 25%)`
+      : `$${effectiveMonthly}/month`;
 
-  const handleSelectPlan = (tierKey: UserTier) => {
+  const handleSelectPlan = (planId: string) => {
     playTactileClick();
-    if (tierKey === 'free') {
+    if (planId === 'free') {
       onClose();
       return;
     }
-    setSelectedTier(tierKey);
+    setSelectedPlanId(planId);
     setFormData((prev) => ({
       ...prev,
       name: prev.name || user?.name || '',
@@ -84,7 +101,22 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
     setErrorMsg(null);
 
     try {
-      // 1. Record lead in database for Admin CRM tracking
+      const seatsCount = isTeamOrder && teamSeats > 1 ? teamSeats : 1;
+
+      // 1. Save directly into Admin Package Orders CRM
+      db.savePackageOrder({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phoneOrWhatsapp: formData.phoneOrWhatsapp.trim() || undefined,
+        planId: plan.id,
+        planName: plan.name,
+        interval,
+        teamSeats: seatsCount,
+        priceFormatted: formattedPrice + (seatsCount > 1 ? ` (${seatsCount} Team Seats)` : ''),
+        notes: formData.notes.trim() || undefined,
+      });
+
+      // 2. Also record in CRM leads
       db.saveLead({
         name: formData.name.trim(),
         email: formData.email.trim(),
@@ -93,11 +125,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
           : 'Direct Subscriber',
         website: '',
         region: 'Global',
-        tier: `PRO_ORDER_${selectedTier.toUpperCase()}_${interval.toUpperCase()}`,
-        message: `[Pro Order Request] Plan: ${plan.name} (${interval}) | Price: ${formattedPrice} | Phone/WhatsApp: ${formData.phoneOrWhatsapp || 'Not provided'} | Notes: ${formData.notes || 'None'}`,
+        tier: `PRO_ORDER_${String(plan.id).toUpperCase()}_${interval.toUpperCase()}`,
+        message: `[Package Order Request] Plan: ${plan.name} (${interval}) | Price: ${formattedPrice} | Seats: ${seatsCount} | Phone/WhatsApp: ${formData.phoneOrWhatsapp || 'Not provided'} | Notes: ${formData.notes || 'None'}`,
       });
 
-      // 2. Transmit to StrixDevs Billing via Email Dispatcher
+      // 3. Optional email transmission
       try {
         await fetch('/api/email', {
           method: 'POST',
@@ -107,8 +139,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
             email: formData.email.trim(),
             name: formData.name.trim(),
             phone: formData.phoneOrWhatsapp.trim(),
-            planName: plan.name,
-            interval: interval,
+            planName: `${plan.name}${seatsCount > 1 ? ` (${seatsCount} Team Seats)` : ''}`,
+            interval,
             amount: formattedPrice,
             notes: formData.notes,
           }),
@@ -128,7 +160,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
   const handleRedeemKey = (e: React.FormEvent) => {
     e.preventDefault();
     if (!licenseKeyInput.trim()) {
-      setKeyErrorMsg('Please enter your Pro License Key.');
+      setKeyErrorMsg('Please enter your license key or team code.');
       return;
     }
 
@@ -138,12 +170,18 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
     if (result.success) {
       playVictoryFanfare();
       setKeySuccess(true);
+      setRedeemedInfo({
+        isTeam: result.isTeamCode,
+        remaining: result.remainingUses,
+        tier: result.tier,
+      });
       setTimeout(() => {
         onClose();
         setView('plans');
         setKeySuccess(false);
         setLicenseKeyInput('');
-      }, 1500);
+        setRedeemedInfo(null);
+      }, 2000);
     } else {
       setKeyErrorMsg(result.error || 'Invalid license key.');
     }
@@ -217,24 +255,23 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
 
             {/* Pricing Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
-              {(['free', 'pro', 'enterprise'] as UserTier[]).map((tierKey) => {
-                const p = PRICING_PLANS[tierKey];
+              {packages.map((p) => {
                 const isHighlighted = p.highlighted;
-                const isCurrent = currentTier === tierKey;
+                const isCurrent = currentTier === p.id;
                 const price = interval === 'annual' ? p.priceAnnual : p.priceMonthly;
 
                 return (
                   <div
-                    key={tierKey}
+                    key={p.id}
                     className={`relative flex flex-col justify-between rounded-2xl p-5 sm:p-6 transition-all duration-300 border ${
                       isHighlighted
                         ? 'bg-gradient-to-b from-zinc-900 to-zinc-950 border-[#38bdf8] shadow-xl shadow-[#38bdf8]/10 ring-1 ring-[#38bdf8]/40'
                         : 'bg-zinc-950/60 border-white/[0.08] hover:border-white/15'
                     }`}
                   >
-                    {isHighlighted && (
+                    {(p.popularBadge || isHighlighted) && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#38bdf8] text-[#09090b] text-[10px] font-extrabold uppercase tracking-wider shadow-sm">
-                        Most Popular
+                        {p.popularBadge || 'Most Popular'}
                       </div>
                     )}
 
@@ -284,7 +321,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                         variant={isHighlighted ? 'primary' : 'outline'}
                         fullWidth
                         size="md"
-                        onClick={() => handleSelectPlan(tierKey)}
+                        onClick={() => handleSelectPlan(p.id)}
                         className={`font-bold cursor-pointer ${
                           isHighlighted
                             ? 'bg-[#38bdf8] text-[#09090b] hover:bg-[#38bdf8]/90 shadow-lg shadow-[#38bdf8]/20'
@@ -293,11 +330,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                       >
                         {isCurrent
                           ? 'Current Plan'
-                          : tierKey === 'free'
+                          : p.id === 'free'
                           ? 'Continue Free'
-                          : tierKey === 'enterprise'
-                          ? 'Contact for Enterprise'
-                          : 'Get Strix Pro'}
+                          : p.ctaLabel || 'Choose Plan'}
                       </Button>
                     </div>
                   </div>
@@ -433,6 +468,61 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
                 onChange={(e) => setFormData({ ...formData, phoneOrWhatsapp: e.target.value })}
               />
 
+              {/* Team Multi-Seat Option */}
+              <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-white/[0.08] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer">
+                      <Users className="w-3.5 h-3.5 text-blue-400" />
+                      Team Multi-Seat Package License
+                    </label>
+                    <p className="text-[11px] text-zinc-400">
+                      Need one code for multiple team members or colleagues to share?
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={isTeamOrder}
+                    onChange={(e) => {
+                      setIsTeamOrder(e.target.checked);
+                      if (!e.target.checked) setTeamSeats(1);
+                      else setTeamSeats(5);
+                    }}
+                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-[#38bdf8] focus:ring-[#38bdf8]"
+                  />
+                </div>
+
+                {isTeamOrder && (
+                  <div className="pt-2.5 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 animate-pop-in">
+                    <span className="text-xs text-zinc-300 font-medium">Number of Team Seats:</span>
+                    <div className="flex items-center gap-1.5">
+                      {[3, 5, 10, 25].map((seats) => (
+                        <button
+                          key={seats}
+                          type="button"
+                          onClick={() => setTeamSeats(seats)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition ${
+                            teamSeats === seats
+                              ? 'bg-[#38bdf8] text-[#09090b] font-bold shadow-sm'
+                              : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/10'
+                          }`}
+                        >
+                          {seats}
+                        </button>
+                      ))}
+                      <input
+                        type="number"
+                        min="2"
+                        max="500"
+                        value={teamSeats}
+                        onChange={(e) => setTeamSeats(Math.max(2, parseInt(e.target.value) || 2))}
+                        className="w-16 px-2 py-1 rounded-lg bg-zinc-900 border border-white/10 text-xs text-white text-center font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Textarea
                 label="Questions or Notes (Optional)"
                 placeholder="Preferred payment method (Card, PayPal, Wise, etc.), company name, or questions..."
@@ -549,9 +639,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose }) =
             {keySuccess ? (
               <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-center space-y-2 animate-pop-in">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
-                <h4 className="text-sm font-bold text-white">Pro Activated Successfully!</h4>
+                <h4 className="text-sm font-bold text-white">
+                  {redeemedInfo?.tier === 'enterprise' ? 'Enterprise' : 'Pro'} Studio Activated!
+                </h4>
                 <p className="text-xs text-zinc-300">
-                  Your studio is now 100% ad-free with full Pro features unlocked.
+                  {redeemedInfo?.isTeam
+                    ? `Team voucher seat verified! (${redeemedInfo.remaining} team seats remaining for other members).`
+                    : 'Your single-use license key has been verified and applied to this device.'}
                 </p>
               </div>
             ) : (

@@ -12,6 +12,9 @@ import {
   Lock,
   Layers,
   Database,
+  Key,
+  CheckCircle2,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../services/db';
@@ -31,10 +34,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   onNavigateToGenerator,
   onOpenTestScan,
 }) => {
-  const { user } = useAuth();
+  const { user, activateLicenseKey } = useAuth();
   const [qrs, setQrs] = useState<SavedQRCode[]>([]);
   const [logos, setLogos] = useState<SavedLogo[]>([]);
   const [tab, setTab] = useState<'qrs' | 'logos' | 'analytics'>('qrs');
+
+  // License code redemption state
+  const [redeemModalOpen, setRedeemModalOpen] = useState(false);
+  const [redeemKeyInput, setRedeemKeyInput] = useState('');
+  const [redeemError, setRedeemError] = useState<string | null>(null);
+  const [redeemSuccess, setRedeemSuccess] = useState<{ isTeam?: boolean; remaining?: number; tier?: string } | null>(null);
 
   const refreshData = () => {
     if (user) {
@@ -46,6 +55,34 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   useEffect(() => {
     refreshData();
   }, [user]);
+
+  const handleRedeemCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!redeemKeyInput.trim()) {
+      setRedeemError('Please enter your license key.');
+      return;
+    }
+
+    setRedeemError(null);
+    const result = activateLicenseKey(redeemKeyInput.trim());
+
+    if (result.success) {
+      playVictoryFanfare();
+      setRedeemSuccess({
+        isTeam: result.isTeamCode,
+        remaining: result.remainingUses,
+        tier: result.tier,
+      });
+      refreshData();
+      setTimeout(() => {
+        setRedeemModalOpen(false);
+        setRedeemSuccess(null);
+        setRedeemKeyInput('');
+      }, 2000);
+    } else {
+      setRedeemError(result.error || 'Invalid code.');
+    }
+  };
 
   const handleDeleteQR = (id: string) => {
     db.deleteQRCode(id);
@@ -148,6 +185,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         <div className="flex flex-wrap items-center gap-3 relative z-10 shrink-0">
           <button
             type="button"
+            onClick={() => {
+              playTactileClick();
+              setRedeemModalOpen(true);
+            }}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition active:scale-[0.98] cursor-pointer"
+          >
+            <Key className="w-3.5 h-3.5" />
+            <span>Redeem Code</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleExportVaultBackup}
             className="px-4 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 hover:text-white border border-white/[0.08] text-xs font-semibold flex items-center gap-2 transition active:scale-[0.98] cursor-pointer"
           >
@@ -168,6 +217,69 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Pro Tier Upgrade or Team Access Banner */}
+      {user?.tier !== 'pro' && user?.tier !== 'enterprise' ? (
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-950/80 via-zinc-900 to-zinc-950 border border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shadow-indigo-950/20">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-bold text-white">Unlock Unlimited Dynamic QR Codes & 100% Ad-Free Studio</h4>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-white/10">
+                  Free Starter Tier
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Have a single-use or team activation voucher? Click Redeem Code to activate Pro on your device.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playTactileClick();
+              setRedeemModalOpen(true);
+            }}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition cursor-pointer shrink-0 shadow-md shadow-indigo-600/30"
+          >
+            Redeem License Key
+          </button>
+        </div>
+      ) : (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-zinc-900 to-zinc-950 border border-emerald-500/30 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  {user.tier.toUpperCase()} TIER ACTIVE
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                  Ad-Free Verified
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-400">
+                Full dynamic redirection, high-res vector PDF printing, and priority scannability guards unlocked.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playTactileClick();
+              setRedeemModalOpen(true);
+            }}
+            className="text-xs text-zinc-400 hover:text-white underline cursor-pointer"
+          >
+            Redeem another key
+          </button>
+        </div>
+      )}
 
       {/* 2. Executive Metric Deck (4 KPI Cards) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -407,6 +519,92 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Redeem License Key Modal */}
+      {redeemModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-md bg-zinc-900 border border-white/[0.1] rounded-3xl p-6 sm:p-7 shadow-2xl relative space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white tracking-tight">Redeem License Key</h3>
+                  <p className="text-[11px] text-zinc-400">Enter your single-use key or team multi-seat code</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRedeemModalOpen(false)}
+                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {redeemError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs text-center animate-pop-in">
+                {redeemError}
+              </div>
+            )}
+
+            {redeemSuccess ? (
+              <div className="p-5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-center space-y-2 animate-pop-in">
+                <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
+                <h4 className="text-sm font-bold text-white">
+                  {redeemedSuccessTierName(redeemSuccess.tier)} Studio Activated!
+                </h4>
+                <p className="text-xs text-zinc-300">
+                  {redeemSuccess.isTeam
+                    ? `Team voucher seat claimed! (${redeemSuccess.remaining} team seats remaining for other members).`
+                    : 'Your single-use license key has been verified and applied to this device.'}
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleRedeemCode} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5 uppercase tracking-wider">
+                    Activation Code / Voucher String
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. STRIX-PRO-9841 or STRIX-TEAM-5X"
+                    value={redeemKeyInput}
+                    onChange={(e) => setRedeemKeyInput(e.target.value.toUpperCase())}
+                    className="w-full px-4 py-3 rounded-xl bg-zinc-950 border border-white/[0.1] text-white text-sm font-mono tracking-wider focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition uppercase placeholder:normal-case placeholder:font-sans placeholder:text-zinc-600"
+                  />
+                  <span className="text-[11px] text-zinc-500 block mt-1.5">
+                    Tip: Try universal test key <code>STRIX-PRO</code> or team key <code>STRIX-TEAM-5X</code>
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setRedeemModalOpen(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-800 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition cursor-pointer"
+                  >
+                    Activate Studio
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+function redeemedSuccessTierName(tier?: string) {
+  if (tier === 'enterprise') return 'Enterprise';
+  return 'Pro';
+}

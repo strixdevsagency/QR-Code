@@ -112,7 +112,7 @@ export interface User {
 export type BillingInterval = 'monthly' | 'annual';
 
 export interface PricingPlan {
-  id: UserTier;
+  id: UserTier | string;
   name: string;
   tagline: string;
   priceMonthly: number;
@@ -122,6 +122,8 @@ export interface PricingPlan {
   popularBadge?: string;
   features: string[];
   ctaLabel: string;
+  isActive?: boolean;
+  sortOrder?: number;
   limits: {
     dynamicQRs: number | 'unlimited';
     monthlyScans: number | 'unlimited';
@@ -132,6 +134,41 @@ export interface PricingPlan {
     analytics: 'basic' | 'advanced' | 'enterprise';
     adFree: boolean;
   };
+}
+
+/* License & Team Redemption Codes */
+export interface LicenseCode {
+  id: string;
+  code: string;
+  tier: UserTier;
+  maxUses: number; // 1 for one-time, N for team use-cases
+  usedCount: number;
+  usedByEmails: string[];
+  customerEmail?: string;
+  customerName?: string;
+  notes?: string;
+  isActive: boolean;
+  expiresAt?: string | null;
+  createdAt: string;
+}
+
+/* Package Purchase Order Requests */
+export type PackageOrderStatus = 'pending' | 'contacted' | 'code_issued' | 'completed' | 'cancelled';
+
+export interface PackageOrder {
+  id: string;
+  name: string;
+  email: string;
+  phoneOrWhatsapp?: string;
+  planId: string;
+  planName: string;
+  interval: BillingInterval;
+  teamSeats?: number;
+  priceFormatted: string;
+  notes?: string;
+  status: PackageOrderStatus;
+  issuedCode?: string;
+  createdAt: string;
 }
 
 /* User Dashboard Assets */

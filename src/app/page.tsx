@@ -337,6 +337,7 @@ export default function HomePage() {
             onNavigateToGenerator={() => setActiveView('generator')}
             onOpenTestScan={(codeId) => setResolverCodeId(codeId)}
             onOpenPricing={() => setIsPricingModalOpen(true)}
+            onLogout={() => setActiveView('generator')}
           />
         )}
       </main>

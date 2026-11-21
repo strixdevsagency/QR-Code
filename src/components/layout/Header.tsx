@@ -11,9 +11,12 @@ import {
   ChevronDown,
   Check,
   RefreshCw,
+  UserCog,
 } from 'lucide-react';
 import { StrixLogo } from '../StrixLogo';
 import { useAuth } from '../../context/AuthContext';
+import { UserAvatar } from '../ui/UserAvatar';
+import { AccountModal } from '../dashboard/AccountModal';
 import { playTactileClick } from '../../utils/audioFeedback';
 
 interface HeaderProps {
@@ -33,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { user, isAuthenticated, isAdmin, logout, refreshUser } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isSyncingRole, setIsSyncingRole] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -166,9 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
                     aria-expanded={isUserMenuOpen}
                   >
                     <div className="relative">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-900 border border-white/20 flex items-center justify-center text-[11px] font-bold text-white shadow-inner">
-                        {user?.name?.[0]?.toUpperCase() || 'U'}
-                      </div>
+                      <UserAvatar avatarUrl={user?.avatarUrl} name={user?.name} size="xs" />
                       <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-zinc-950 absolute -bottom-0.5 -right-0.5" />
                     </div>
                     <span className="text-xs font-medium max-w-[100px] truncate">
@@ -219,6 +221,18 @@ export const Header: React.FC<HeaderProps> = ({
 
                       {/* Navigation Shortcuts */}
                       <div className="py-1 px-1.5 space-y-0.5">
+                        <button
+                          onClick={() => {
+                            playTactileClick();
+                            setIsUserMenuOpen(false);
+                            setIsAccountModalOpen(true);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition cursor-pointer"
+                        >
+                          <UserCog className="w-4 h-4 text-[#38bdf8]" />
+                          <span>Account & Security</span>
+                        </button>
+
                         <button
                           onClick={() => handleNavClick('dashboard')}
                           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition cursor-pointer"
@@ -392,9 +406,7 @@ export const Header: React.FC<HeaderProps> = ({
               {isAuthenticated ? (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-semibold text-zinc-200">
-                      {user?.name?.[0]?.toUpperCase() || 'U'}
-                    </div>
+                    <UserAvatar avatarUrl={user?.avatarUrl} name={user?.name} size="sm" />
                     <div>
                       <p className="text-xs font-semibold text-white">{user?.name}</p>
                       <p className="text-[11px] text-zinc-400">{user?.email}</p>
@@ -436,6 +448,16 @@ export const Header: React.FC<HeaderProps> = ({
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
         />
       )}
+
+      {/* Account Settings & Security Modal */}
+      <AccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        onLogout={() => {
+          setIsAccountModalOpen(false);
+          setActiveView('generator');
+        }}
+      />
     </>
   );
 };

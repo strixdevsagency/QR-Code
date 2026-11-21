@@ -3,7 +3,6 @@ import {
   QrCode,
   Image as ImageIcon,
   BarChart3,
-  Plus,
   Shield,
   ShieldCheck,
   Download,
@@ -24,6 +23,8 @@ import {
   ChevronRight,
   Sparkles,
   TrendingUp,
+  LogOut,
+  UserCog,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../services/db';
@@ -37,6 +38,8 @@ import { PackageOrdersManager } from '../admin/PackageOrdersManager';
 import { AnalyticsConfig } from '../admin/AnalyticsConfig';
 import { AdSenseManager } from '../admin/AdSenseManager';
 import { DynamicQRMgr } from '../admin/DynamicQRMgr';
+import { AccountModal } from './AccountModal';
+import { UserAvatar } from '../ui/UserAvatar';
 import { playTactileClick, playVictoryFanfare } from '../../utils/audioFeedback';
 
 export type DashboardSection =
@@ -57,6 +60,7 @@ interface UnifiedDashboardProps {
   onNavigateToGenerator: () => void;
   onOpenTestScan: (codeId: string) => void;
   onOpenPricing?: () => void;
+  onLogout?: () => void;
 }
 
 export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
@@ -64,12 +68,24 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
   onNavigateToGenerator,
   onOpenTestScan,
   onOpenPricing,
+  onLogout,
 }) => {
-  const { user, isAdmin, activateLicenseKey } = useAuth();
+  const { user, isAdmin, logout, activateLicenseKey } = useAuth();
   const [activeSection, setActiveSection] = useState<DashboardSection>(() =>
     isAdmin ? 'overview' : 'qrs'
   );
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+
+  const handleLogout = () => {
+    playTactileClick();
+    logout();
+    if (onLogout) {
+      onLogout();
+    } else {
+      onNavigateToGenerator();
+    }
+  };
 
   // User Vault Data
   const [qrs, setQrs] = useState<SavedQRCode[]>([]);
@@ -432,15 +448,22 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
         </div>
       </div>
 
-      {/* Operator Card & Open Studio Footer */}
-      <div className="shrink-0 p-4 border-t border-white/[0.08] bg-zinc-950 space-y-3">
-        <div className="p-2.5 rounded-xl bg-zinc-900/70 border border-white/[0.08] flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white border border-white/20 shrink-0">
-            {user?.name?.[0]?.toUpperCase() || 'U'}
-          </div>
+      {/* Operator Card & Account/Logout Footer */}
+      <div className="shrink-0 p-3.5 border-t border-white/[0.08] bg-zinc-950 space-y-2.5">
+        <div
+          onClick={() => {
+            playTactileClick();
+            setIsAccountModalOpen(true);
+          }}
+          className="p-2.5 rounded-xl bg-zinc-900/70 hover:bg-zinc-900 border border-white/[0.08] hover:border-white/[0.15] flex items-center gap-3 transition cursor-pointer group"
+          title="Manage Account Information & Security"
+        >
+          <UserAvatar avatarUrl={user?.avatarUrl} name={user?.name} size="sm" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-white truncate">{user?.name || 'Strix Operator'}</p>
+              <p className="text-xs font-bold text-white truncate group-hover:text-[#38bdf8] transition-colors">
+                {user?.name || 'Strix Operator'}
+              </p>
               <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30 font-semibold">
                 {isAdmin ? 'Admin' : (user?.tier || 'Free')}
               </span>
@@ -456,17 +479,27 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            playTactileClick();
-            onNavigateToGenerator();
-          }}
-          className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-md shadow-sky-500/20 transition cursor-pointer active:scale-[0.98]"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>New QR Matrix (Studio)</span>
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              playTactileClick();
+              setIsAccountModalOpen(true);
+            }}
+            className="w-full py-2 px-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] hover:border-white/[0.15] text-zinc-300 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-[0.98]"
+          >
+            <UserCog className="w-3.5 h-3.5 text-[#38bdf8]" />
+            <span>Account</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full py-2 px-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/30 text-rose-300 hover:text-rose-200 font-medium text-xs flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-[0.98]"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Log Out</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -512,14 +545,27 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                playTactileClick();
+                setIsAccountModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 hover:text-white text-xs font-medium transition cursor-pointer"
+              title="Account Settings & Security"
+            >
+              <UserAvatar avatarUrl={user?.avatarUrl} name={user?.name} size="xs" />
+              <span className="hidden sm:inline font-semibold text-xs">{user?.name?.split(' ')[0] || 'Account'}</span>
+            </button>
+
             <button
               type="button"
               onClick={() => {
                 playTactileClick();
                 onNavigateToGenerator();
               }}
-              className="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/[0.08] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/[0.08] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
             >
               <span>QR Studio</span>
               <ExternalLink className="w-3 h-3" />
@@ -1000,6 +1046,12 @@ export const UnifiedDashboard: React.FC<UnifiedDashboardProps> = ({
           </div>
         </div>
       )}
+      {/* Account Settings & Security Modal */}
+      <AccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        onLogout={handleLogout}
+      />
     </div>
   );
 };

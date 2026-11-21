@@ -31,6 +31,7 @@ interface AuthContextType {
   updateUserTier: (tier: UserTier) => void;
   updateUserRole: (userId: string, role: UserRole) => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateProfile: (updates: { name?: string; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   activateLicenseKey: (key: string) => {
     success: boolean;
     tier?: UserTier;
@@ -399,6 +400,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (updates: { name?: string; avatarUrl?: string }): Promise<{ success: boolean; error?: string }> => {
+    if (!user) return { success: false, error: 'No authenticated user session found.' };
+
+    const updatedUser: User = {
+      ...user,
+      name: updates.name !== undefined ? updates.name : user.name,
+      avatarUrl: updates.avatarUrl !== undefined ? updates.avatarUrl : user.avatarUrl,
+    };
+
+    setUser(updatedUser);
+    db.saveUserProfile(updatedUser);
+    db.setCurrentUser(updatedUser);
+
+    if (isCloud && supabase) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            name: updatedUser.name,
+            avatar_url: updatedUser.avatarUrl || null,
+            updated_at: new Date().toISOString(),
+          })
+          .or(`id.eq.${user.id},email.ilike.${user.email.toLowerCase().trim()}`);
+
+        await supabase.auth.updateUser({
+          data: {
+            name: updatedUser.name,
+            full_name: updatedUser.name,
+            avatar_url: updatedUser.avatarUrl || null,
+          },
+        });
+      } catch (err: any) {
+        console.warn('[Strix Auth] Cloud profile sync notice:', err);
+      }
+    }
+
+    return { success: true };
+  };
+
   const refreshUser = async () => {
     if (isCloud && supabase) {
       // Force refresh auth token
@@ -434,6 +474,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...local,
             role: profile.role as UserRole,
             tier: (profile.tier as UserTier) || local.tier,
+            name: profile.name || local.name,
+            avatarUrl: profile.avatar_url || local.avatarUrl,
           };
           setUser(updated);
           db.setCurrentUser(updated);
@@ -547,6 +589,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUserTier,
         updateUserRole,
         refreshUser,
+        updateProfile,
         activateLicenseKey,
       }}
     >
